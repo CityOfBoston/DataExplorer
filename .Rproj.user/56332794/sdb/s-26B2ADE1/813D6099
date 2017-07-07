@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "library(leaflet)\n\n\nnavbarPage(\"Analyze Boston Data Explorer\", id=\"nav\",\n\n  tabPanel(\"Interactive map\",\n    div(class=\"outer\",\n\n      tags$head(\n        # Include our custom CSS\n        includeCSS(\"styles.css\"),\n        includeScript(\"gomap.js\")\n      ),\n\n      leafletOutput(\"map\", width=\"100%\", height=\"100%\"),\n\n      # Shiny versions prior to 0.11 should use class=\"modal\" instead.\n      absolutePanel(id = \"controls\", class = \"panel panel-default\", fixed = TRUE,\n                    draggable = TRUE, top = 60, left = \"auto\", right = 20, bottom = \"auto\",\n                    width = 330, height = \"auto\",\n                    h2(\"Data Explorer\"),\n                    selectInput(\"data\", \"Data Set\", titles, selected = \"Charging Stations\")\n      )\n    )\n  ),\n\n  tabPanel(\"Other stuff\",\n    fluidRow(\n      column(3,\n        selectInput(\"states\", \"States\", c(\"All states\"=\"\", structure(state.abb, names=state.name), \"Washington, DC\"=\"DC\"), multiple=TRUE)\n      ),\n      column(3,\n        conditionalPanel(\"input.states\",\n          selectInput(\"cities\", \"Cities\", c(\"All cities\"=\"\"), multiple=TRUE)\n        )\n      ),\n      column(3,\n        conditionalPanel(\"input.states\",\n          selectInput(\"zipcodes\", \"Zipcodes\", c(\"All zipcodes\"=\"\"), multiple=TRUE)\n        )\n      )\n    ),\n    fluidRow(\n      column(1,\n        numericInput(\"minScore\", \"Min score\", min=0, max=100, value=0)\n      ),\n      column(1,\n        numericInput(\"maxScore\", \"Max score\", min=0, max=100, value=100)\n      )\n    ),\n    hr(),\n    DT::dataTableOutput(\"ziptable\")\n  ),\n\n  conditionalPanel(\"false\", icon(\"crosshair\"))\n)\n",
+    "created" : 1499456590083.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2937140993",
+    "id" : "813D6099",
+    "lastKnownWriteTime" : 1499457600,
+    "last_content_update" : 1499457600118,
+    "path" : "~/Documents/Boston Fellows/dataExplorer/ui.R",
+    "project_path" : "ui.R",
+    "properties" : {
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
