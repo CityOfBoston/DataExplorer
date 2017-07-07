@@ -11,6 +11,17 @@ urls <- lapply(datasets, function(x){
 data <- setNames(urls,titles)
 data <- data[order(names(data))]
 
+addData <- function(leaflet, data){
+  slots <- slotNames(data)
+  if("polygons" %in% slots){
+    addPolygons(leaflet, data=data)
+  }else if("lines" %in% slots){
+    addPolylines(leaflet, data=data)
+  }else{
+    addMarkers(leaflet, data=data)
+  }
+}
+
 # allzips <- readRDS("data/superzip.rds")
 # allzips$latitude <- jitter(allzips$latitude)
 # allzips$longitude <- jitter(allzips$longitude)

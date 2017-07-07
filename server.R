@@ -26,9 +26,8 @@ function(input, output, session) {
       ) %>%
       # centering the view on a specific location (Boston)
       setView(lng = -71.0589, lat = 42.31, zoom = 12) %>%
-      # adding the markers
-      # adding the zones
-      addMarkers(data = jsonData())
+      # adding the data
+      addData(data = jsonData())
   })
 
   # A reactive expression that returns the set of zips that are

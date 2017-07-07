@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "library(shiny)\nlibrary(leaflet)\nlibrary(rgdal)\n\ntLines <- rgdal::readOGR(dsn = \"/Users/rupayanneogy/Downloads/mbta_rapid_transit\", layer = \"MBTA_ARC\")\ntLines <- spTransform(tLines, CRS(\"+proj=longlat +datum=WGS84 +no_defs\"))\n\ntStops <- readOGR(dsn = \"/Users/rupayanneogy/Downloads/mbta_rapid_transit/\",\n                  layer = \"MBTA_NODE\") %>% spTransform(CRS(\"+proj=longlat +datum=WGS84 +no_defs\"))\n\n\nui <- bootstrapPage(\n  tags$style(type = \"text/css\", \"html, body {width:100%;height:100%}\"),\n  leafletOutput(\"map\", width = \"100%\", height = \"100%\")\n)\n\nserver <- function(input, output, session){\n  output$map <- renderLeaflet({\n    leaflet() %>%\n      addProviderTiles(providers$CartoDB.Positron) %>%\n      # centering the view on a specific location (Boston)\n      setView(lng = -71.0589, lat = 42.4, zoom = 12) %>%\n      addPolylines(data = tLines, weight = 4, color = ~tolower(LINE), fill = FALSE,\n                   opacity = 1) %>%\n      addCircleMarkers(data = tStops, label = ~STATION, color = ~tolower(LINE),\n                       fillOpacity = 0.5, weight = 3, radius = 8)\n  })\n}\n\nshinyApp(ui,server)",
+    "created" : 1499460096661.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3211874523",
+    "id" : "29E5ACF5",
+    "lastKnownWriteTime" : 1498681296,
+    "last_content_update" : 1498681296,
+    "path" : "~/Documents/Boston Fellows/dataPortal/examples/mbtaLinesShapeFile.R",
+    "project_path" : null,
+    "properties" : {
+    },
+    "relative_order" : 6,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
