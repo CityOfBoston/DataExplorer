@@ -19,7 +19,11 @@ navbarPage("Analyze Boston Data Explorer", id="nav",
                     draggable = TRUE, top = 60, left = "auto", right = 20, bottom = "auto",
                     width = 330, height = "auto",
                     h2("Data Explorer"),
-                    selectInput("data", "Data Set", titles, selected = "Charging Stations")
+                    div(id = "dataSelects",
+                      selectInput("data0", "Data Set", titles, selected = "Charging Stations")
+                    ),
+                    actionButton("add", "+"),
+                    textOutput("inserted")
       )
     )
   ),

@@ -33,7 +33,26 @@ function(input, output, session) {
   # A reactive expression that returns the set of zips that are
   # in bounds right now
   jsonData <- reactive({
-    readOGR(as.character(data[input$data]), "OGRGeoJSON")
+    readOGR(as.character(data[input$data0]), "OGRGeoJSON")
+  })
+  
+  ## keep track of elements inserted and not yet removed
+  inserted <- c()
+  
+  # adds multiple datalayer dropdowns
+  observeEvent(input$add, {
+    btn <- input$add
+    id <- paste0('data', btn)
+    insertUI(
+      selector = '#dataSelects',
+      where = "beforeEnd",
+      ui = selectInput(id, "Data Set", titles, selected = "Charging Stations")
+    )
+    inserted <<- c(id, inserted)
+  })
+  
+  output$inserted <- reactive({
+    inserted
   })
   
   # zipsInBounds <- reactive({
