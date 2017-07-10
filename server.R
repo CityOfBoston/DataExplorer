@@ -16,9 +16,6 @@ library(geojsonio)
 function(input, output, session) {
 
   ## Interactive Map ###########################################
-  
-  ## keep track of elements inserted and not yet removed
-  inserted <- c()
 
   # Create the map
   output$map <- renderLeaflet({
@@ -28,27 +25,49 @@ function(input, output, session) {
                        options = providerTileOptions(noWrap = TRUE)
       ) %>%
       # centering the view on a specific location (Boston)
-      setView(lng = -71.0589, lat = 42.31, zoom = 12) %>%
+      setView(lng = -71.0589, lat = 42.31, zoom = 12)
       # adding the data
-      addData(data = jsonData())
+      # addData(data = jsonData())
   })
 
-  jsonData <- reactive({
-    geojson_read(as.character(data[input$data]), what = "sp")
+  # jsonData <- reactive({
+  #   geojson_read(as.character(data[input$data0]), what = "sp")
+  # })
+  
+  features <- reactiveValues(rendered=c(0))
+  
+  # Increment reactive values used to store how may rows we have rendered
+  observeEvent(input$add,{
+    if (max(features$rendered) > 2) return(NULL)
+    features$rendered <- c(features$rendered, max(features$rendered)+1)
   })
   
-  # adds multiple datalayer dropdowns
-  observeEvent(input$add, {
-    btn <- input$add
-    id <- paste0('data', btn)
-    unbindAll()
-    insertUI(
-      selector = '#dataSelects',
-      where = "beforeEnd",
-      ui = selectInput("data", "Data Set", titles, selected = "Charging Stations")
-    )
-    bindAll()
-    inserted <<- c(id, inserted)
+  dataNames <- eventReactive(input$update, {
+    lapply(features$rendered,function(i){
+      dataId <- paste0('data',i)
+      input[[dataId]]
+    })
+  })
+  
+  observe({
+    names <- dataNames()
+    proxy <- leafletProxy("map") %>%
+      clearMarkers() %>%
+      clearShapes()
+    for(i in names){
+      link <- data[i]
+      spData <- geojson_read(as.character(link), what = "sp")
+      addData(proxy, data = spData)
+    }
+  })
+  
+  observe({
+    output$dataDropdowns <- renderUI({
+      rows <- lapply(features$rendered,function(i){
+        selectInput(paste0("data",i), "Data Set", titles, selected = "Charging Stations")
+      })
+      do.call(shiny::tagList,rows)
+    })
   })
   
   # zipsInBounds <- reactive({
