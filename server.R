@@ -4,7 +4,7 @@ library(scales)
 library(lattice)
 library(dplyr)
 library(rjson)
-library(rgdal)
+library(geojsonio)
 
 # # Leaflet bindings are a bit slow; for now we'll just sample to compensate
 # set.seed(100)
@@ -16,6 +16,9 @@ library(rgdal)
 function(input, output, session) {
 
   ## Interactive Map ###########################################
+  
+  ## keep track of elements inserted and not yet removed
+  inserted <- c()
 
   # Create the map
   output$map <- renderLeaflet({
@@ -30,29 +33,22 @@ function(input, output, session) {
       addData(data = jsonData())
   })
 
-  # A reactive expression that returns the set of zips that are
-  # in bounds right now
   jsonData <- reactive({
-    readOGR(as.character(data[input$data0]), "OGRGeoJSON")
+    geojson_read(as.character(data[input$data]), what = "sp")
   })
-  
-  ## keep track of elements inserted and not yet removed
-  inserted <- c()
   
   # adds multiple datalayer dropdowns
   observeEvent(input$add, {
     btn <- input$add
     id <- paste0('data', btn)
+    unbindAll()
     insertUI(
       selector = '#dataSelects',
       where = "beforeEnd",
-      ui = selectInput(id, "Data Set", titles, selected = "Charging Stations")
+      ui = selectInput("data", "Data Set", titles, selected = "Charging Stations")
     )
+    bindAll()
     inserted <<- c(id, inserted)
-  })
-  
-  output$inserted <- reactive({
-    inserted
   })
   
   # zipsInBounds <- reactive({

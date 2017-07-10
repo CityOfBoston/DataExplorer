@@ -10,6 +10,7 @@ urls <- lapply(datasets, function(x){
 })
 data <- setNames(urls,titles)
 data <- data[order(names(data))]
+displayedDataNames <- c()
 
 addData <- function(leaflet, data){
   slots <- slotNames(data)

@@ -20,7 +20,7 @@ navbarPage("Analyze Boston Data Explorer", id="nav",
                     width = 330, height = "auto",
                     h2("Data Explorer"),
                     div(id = "dataSelects",
-                      selectInput("data0", "Data Set", titles, selected = "Charging Stations")
+                      selectInput("data", "Data Set", titles, selected = "Charging Stations")
                     ),
                     actionButton("add", "+"),
                     textOutput("inserted")
