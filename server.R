@@ -22,7 +22,7 @@ function(input, output, session) {
   output$map <- renderLeaflet({
     leaflet() %>%
       # the styling of the map itself
-      addProviderTiles(providers$OpenStreetMap,
+      addProviderTiles(providers$Esri.NatGeoWorldMap,
                        options = providerTileOptions(noWrap = TRUE)
       ) %>%
       # centering the view on a specific location (Boston)
