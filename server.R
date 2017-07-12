@@ -29,11 +29,21 @@ function(input, output, session) {
       setView(lng = -71.0589, lat = 42.31, zoom = 12)
   })
   
-  features <- reactiveValues(rendered=c(0))
+  # stored values of front end values
+  features <- reactiveValues(rendered=c(1),names=c("Charging Stations"),
+                             colors=c("blue"))
   
   # Increment reactive values used to store how may rows we have rendered
   observeEvent(input$add,{
     if (max(features$rendered) > 2) return(NULL)
+    features$names <- lapply(features$rendered, function(i){
+      input[[paste0('data',i)]]
+    })
+    features$colors <- lapply(features$rendered, function(i){
+      input[[paste0('color',i)]]
+    })
+    features$names <- c(features$names, "Charging Stations")
+    features$colors <- c(features$colors, "blue")
     features$rendered <- c(features$rendered, max(features$rendered)+1)
   })
   
@@ -65,8 +75,10 @@ function(input, output, session) {
     output$dataDropdowns <- renderUI({
       rows <- lapply(features$rendered,function(i){
         tags$div(id = paste0("div",i),
-          selectInput(paste0("data",i), "Data Set", titles, selected = "Charging Stations"),
-          colourInput(paste0("color",i), "Color", "blue", palette="limited")
+          selectInput(paste0("data",i), "Data Set", titles,
+                      selected = as.character(features$names[i])),
+          colourInput(paste0("color",i), "Color", value=features$colors[i],
+                      palette="limited")
         )
       })
       do.call(shiny::tagList,rows)
