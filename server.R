@@ -47,6 +47,14 @@ function(input, output, session) {
     features$rendered <- c(features$rendered, max(features$rendered)+1)
   })
   
+  # Remove reactive values
+  observeEvent(input$remove,{
+    if(max(features$rendered) < 2) return(NULL)
+    features$names <- head(features$names, -1)
+    features$colors <- head(features$colors, -1)
+    features$rendered <- head(features$rendered, -1)
+  })
+  
   # input data for choices about datasets
   df <- eventReactive(input$update, {
     out <- lapply(features$rendered,function(i){
