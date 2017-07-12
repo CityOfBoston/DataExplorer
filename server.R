@@ -66,10 +66,10 @@ function(input, output, session) {
     # }
     by(df, 1:nrow(df), function(row){
       print(row)
-      # link <- data[as.character(name)]
-      # print(link)
-      # spData <- geojson_read(as.character(link), what="sp")
-      # addData(proxy, data=spData)
+      link <- data[as.character(row$Name)]
+      print(link)
+      spData <- geojson_read(as.character(link), what="sp")
+      addData(proxy, data=spData)
     })
   })
   
