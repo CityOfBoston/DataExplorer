@@ -5,6 +5,7 @@ library(lattice)
 library(dplyr)
 library(rjson)
 library(geojsonio)
+library(colourpicker)
 
 # # Leaflet bindings are a bit slow; for now we'll just sample to compensate
 # set.seed(100)
@@ -26,14 +27,8 @@ function(input, output, session) {
       ) %>%
       # centering the view on a specific location (Boston)
       setView(lng = -71.0589, lat = 42.31, zoom = 12)
-      # adding the data
-      # addData(data = jsonData())
   })
 
-  # jsonData <- reactive({
-  #   geojson_read(as.character(data[input$data0]), what = "sp")
-  # })
-  
   features <- reactiveValues(rendered=c(0))
   
   # Increment reactive values used to store how may rows we have rendered
@@ -49,22 +44,42 @@ function(input, output, session) {
     })
   })
   
+  df <- eventReactive(input$update, {
+    out <- lapply(features$rendered,function(i){
+      dataName <- paste0('data',i)
+      dataColor <- paste0('color',i)
+      data.frame(Name=input[[dataName]], Color=input[[dataColor]] )
+    })
+    do.call(rbind,out)
+  })
+  
   observe({
-    names <- dataNames()
+    df <- df()
+    # names <- dataNames()
     proxy <- leafletProxy("map") %>%
       clearMarkers() %>%
       clearShapes()
-    for(i in names){
-      link <- data[i]
-      spData <- geojson_read(as.character(link), what = "sp")
-      addData(proxy, data = spData)
-    }
+    # for(i in names){
+    #   link <- data[i]
+    #   spData <- geojson_read(as.character(link), what = "sp")
+    #   addData(proxy, data = spData)
+    # }
+    by(df, 1:nrow(df), function(row){
+      print(row)
+      # link <- data[as.character(name)]
+      # print(link)
+      # spData <- geojson_read(as.character(link), what="sp")
+      # addData(proxy, data=spData)
+    })
   })
   
   observe({
     output$dataDropdowns <- renderUI({
       rows <- lapply(features$rendered,function(i){
-        selectInput(paste0("data",i), "Data Set", titles, selected = "Charging Stations")
+        tags$div(id = paste0("div",i),
+          selectInput(paste0("data",i), "Data Set", titles, selected = "Charging Stations"),
+          colourInput(paste0("color",i), "Color", "blue", palette="limited")
+        )
       })
       do.call(shiny::tagList,rows)
     })

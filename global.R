@@ -11,14 +11,14 @@ urls <- lapply(datasets, function(x){
 data <- setNames(urls,titles)
 data <- data[order(names(data))]
 
-addData <- function(leaflet, data){
+addData <- function(leaflet, data, color="blue"){
   slots <- slotNames(data)
   if("polygons" %in% slots){
-    addPolygons(leaflet, data=data)
+    addPolygons(leaflet, data=data, color)
   }else if("lines" %in% slots){
-    addPolylines(leaflet, data=data)
+    addPolylines(leaflet, data=data, color)
   }else{
-    addMarkers(leaflet, data=data)
+    addMarkers(leaflet, data=data, color)
   }
 }
 
