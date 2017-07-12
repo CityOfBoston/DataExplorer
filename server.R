@@ -28,7 +28,7 @@ function(input, output, session) {
       # centering the view on a specific location (Boston)
       setView(lng = -71.0589, lat = 42.31, zoom = 12)
   })
-
+  
   features <- reactiveValues(rendered=c(0))
   
   # Increment reactive values used to store how may rows we have rendered
@@ -37,42 +37,30 @@ function(input, output, session) {
     features$rendered <- c(features$rendered, max(features$rendered)+1)
   })
   
-  dataNames <- eventReactive(input$update, {
-    lapply(features$rendered,function(i){
-      dataId <- paste0('data',i)
-      input[[dataId]]
-    })
-  })
-  
+  # input data for choices about datasets
   df <- eventReactive(input$update, {
     out <- lapply(features$rendered,function(i){
       dataName <- paste0('data',i)
       dataColor <- paste0('color',i)
-      data.frame(Name=input[[dataName]], Color=input[[dataColor]] )
+      data.frame(name=input[[dataName]], color=input[[dataColor]] )
     })
     do.call(rbind,out)
   })
   
+  # add data whenever the df is updated
   observe({
     df <- df()
-    # names <- dataNames()
     proxy <- leafletProxy("map") %>%
       clearMarkers() %>%
       clearShapes()
-    # for(i in names){
-    #   link <- data[i]
-    #   spData <- geojson_read(as.character(link), what = "sp")
-    #   addData(proxy, data = spData)
-    # }
     by(df, 1:nrow(df), function(row){
-      print(row)
-      link <- data[as.character(row$Name)]
-      print(link)
+      link <- data[as.character(row$name)]
       spData <- geojson_read(as.character(link), what="sp")
-      addData(proxy, data=spData)
+      addData(proxy, data=spData, color=as.character(row$color))
     })
   })
   
+  # render the UI, adding the correct number of dataDropdowns
   observe({
     output$dataDropdowns <- renderUI({
       rows <- lapply(features$rendered,function(i){

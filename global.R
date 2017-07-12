@@ -14,11 +14,11 @@ data <- data[order(names(data))]
 addData <- function(leaflet, data, color="blue"){
   slots <- slotNames(data)
   if("polygons" %in% slots){
-    addPolygons(leaflet, data=data)
+    addPolygons(leaflet, data=data, color=color)
   }else if("lines" %in% slots){
-    addPolylines(leaflet, data=data)
+    addPolylines(leaflet, data=data, color=color)
   }else{
-    addMarkers(leaflet, data=data)
+    addCircleMarkers(leaflet, data=data, stroke=FALSE, fillOpacity=0.6, color=color)
   }
 }
 
