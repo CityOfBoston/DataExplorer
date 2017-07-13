@@ -1,4 +1,3 @@
-library(leaflet)
 library(RColorBrewer)
 library(scales)
 library(lattice)
@@ -27,7 +26,9 @@ function(input, output, session) {
                        options = providerTileOptions(noWrap = TRUE)
       ) %>%
       # centering the view on a specific location (Boston)
-      setView(lng = -71.0589, lat = 42.31, zoom = 12)
+      setView(lng = -71.0589, lat = 42.31, zoom = 12) %>%
+      addPolygons(data = boundJson, weight = 4, color = "#333333",
+                  fill = FALSE, opacity = .9)
   })
   
   # stored values of front end values
@@ -75,7 +76,10 @@ function(input, output, session) {
     by(df, 1:nrow(df), function(row){
       link <- data[as.character(row$name)]
       spData <- geojson_read(as.character(link), what="sp")
+      addPolygons(proxy, data = boundJson, weight = 4, color = "grey",
+                  fill = FALSE, opacity = .9)
       addData(proxy, data=spData, color=as.character(row$color))
+      
     })
   })
   

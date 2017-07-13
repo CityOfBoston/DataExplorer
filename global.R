@@ -1,7 +1,12 @@
 library(dplyr)
 library(rjson)
 
+
+#bostonLink<-"http://bostonopendata-boston.opendata.arcgis.com/datasets/142500a77e2a4dbeb94a86f7e0b568bc_0.geojson"
+
+
 datasets <- fromJSON(readLines("https://data.boston.gov/api/3/action/package_search?q=geojson&rows=60"))$result$results
+bostonLink<-"http://bostonopendata-boston.opendata.arcgis.com/datasets/142500a77e2a4dbeb94a86f7e0b568bc_0.geojson"
 titles <- lapply(datasets, function(x){
   return (x$title)
 })
@@ -10,6 +15,8 @@ urls <- lapply(datasets, function(x){
 })
 data <- setNames(urls,titles)
 data <- data[order(names(data))]
+boundJson <- geojson_read(bostonLink, what = "sp")
+
 
 addData <- function(leaflet, data, color="blue"){
   slots <- slotNames(data)
@@ -21,6 +28,12 @@ addData <- function(leaflet, data, color="blue"){
     addCircleMarkers(leaflet, data=data, fillOpacity=0.6, color=color,
                      label = getLabel(data))
   }
+}
+
+addCitybound <-function(wei = 2){
+  addPolygons(data = boundJson, weight = wei, color = "blue",
+              fill = FALSE)
+  addP
 }
 
 getLabel <- function(data){
