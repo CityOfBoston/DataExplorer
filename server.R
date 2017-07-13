@@ -22,7 +22,7 @@ function(input, output, session) {
     leaflet() %>%
       # the styling of the map itself
       addProviderTiles( # providers$CartoDB.Positron,
-        providers$Esri.NatGeoWorldMap,
+        providers$Esri.WorldGrayCanvas,
                        options = providerTileOptions(noWrap = TRUE)
       ) %>%
       # centering the view on a specific location (Boston)
