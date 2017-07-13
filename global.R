@@ -18,6 +18,22 @@ addData <- function(leaflet, data, color="blue"){
   }else if("lines" %in% slots){
     addPolylines(leaflet, data=data, color=color)
   }else{
-    addCircleMarkers(leaflet, data=data, fillOpacity=0.6, color=color)
+    addCircleMarkers(leaflet, data=data, fillOpacity=0.6, color=color,
+                     label = getLabel(data))
   }
+}
+
+getLabel <- function(data){
+  for(name in names(data)){
+    if(grepl("name", name, ignore.case=TRUE)){
+      print(name)
+      return(as.character(data[[name]]))
+    }
+  }
+  return(NULL)
+  # if("Name" %in% names(data)){
+  #   return(as.character(data$Name))
+  # }else{
+  #   return(NULL)
+  # }
 }
