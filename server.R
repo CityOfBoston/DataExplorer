@@ -22,7 +22,8 @@ function(input, output, session) {
   output$map <- renderLeaflet({
     leaflet() %>%
       # the styling of the map itself
-      addProviderTiles(providers$Esri.NatGeoWorldMap,
+      addProviderTiles( # providers$CartoDB.Positron,
+        providers$Esri.NatGeoWorldMap,
                        options = providerTileOptions(noWrap = TRUE)
       ) %>%
       # centering the view on a specific location (Boston)
@@ -83,9 +84,11 @@ function(input, output, session) {
     output$dataDropdowns <- renderUI({
       rows <- lapply(features$rendered,function(i){
         tags$div(id = paste0("div",i),
-          selectInput(paste0("data",i), "Data Set", titles,
-                      selected = as.character(features$names[i])),
-          colourInput(paste0("color",i), "Color", value=features$colors[i],
+          selectizeInput(paste0("data",i), "Data Set", titles,
+                         selected = as.character(features$names[i]),
+                         options=list(placeholder='Search for a Data Set')),
+          colourInput(paste0("color",i), "Color", showColour="background",
+                      value=features$colors[i],
                       palette="limited")
         )
       })
