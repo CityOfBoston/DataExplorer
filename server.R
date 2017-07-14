@@ -31,7 +31,7 @@ function(input, output, session) {
   
   # Increment reactive values used to store how may rows we have rendered
   observeEvent(input$add,{
-    if (max(features$rendered) > 2) return(NULL)
+    if (max(features$rendered) > 8) return(NULL)
     features$names <- lapply(features$rendered, function(i){
       input[[paste0('data',i)]]
     })
@@ -88,17 +88,20 @@ function(input, output, session) {
   # render the UI, adding the correct number of dataDropdowns
   observe({
     output$dataDropdowns <- renderUI({
+      # create rows of collapsible panels, one per dataset
       rows <- lapply(features$rendered,function(i){
-        tags$div(id = paste0("div",i),
+        bsCollapsePanel(value = paste0("collapse",i),
           selectizeInput(paste0("data",i), "Data Set", titles,
                          selected = as.character(features$names[i]),
                          options=list(placeholder='Search for a Data Set')),
           colourInput(paste0("color",i), "Color", showColour="background",
                       value=features$colors[i],
-                      palette="limited")
+                      palette="limited"),
+          title = paste("Data Set", i)
         )
       })
-      do.call(shiny::tagList,rows)
+      # returns the actual rows of collapse panels in the bsCollapse ui object
+      do.call(bsCollapse, c(rows, open="collapse1", id="collapseGroup"))
     })
   })
   

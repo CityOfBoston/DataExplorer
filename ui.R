@@ -20,8 +20,7 @@ navbarPage("Analyze Boston Data Explorer", id="nav",
                     uiOutput("dataDropdowns"),
                     actionButton("add", "+"),
                     actionButton("remove", "-"),
-                    actionButton("update", "Update Datalayers"),
-                    tableOutput('tbl')
+                    actionButton("update", "Update Datalayers")
       )
     )
   ),
