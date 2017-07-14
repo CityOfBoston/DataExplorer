@@ -1,5 +1,4 @@
 library(RColorBrewer)
-library(geojsonio)
 library(colourpicker)
 
 # # Leaflet bindings are a bit slow; for now we'll just sample to compensate

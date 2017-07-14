@@ -1,7 +1,6 @@
 library(leaflet)
-
-
-
+library(rjson)
+library(geojsonio)
 
 datasets <- fromJSON(readLines("https://data.boston.gov/api/3/action/package_search?q=geojson&rows=60"))$result$results
 bostonLink<-"http://bostonopendata-boston.opendata.arcgis.com/datasets/142500a77e2a4dbeb94a86f7e0b568bc_0.geojson"
