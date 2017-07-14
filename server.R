@@ -16,7 +16,7 @@ function(input, output, session) {
   output$map <- renderLeaflet({
     leaflet() %>%
       # the styling of the map itself
-      addProviderTiles( # providers$CartoDB.Positron,
+      addProviderTiles(
         providers$Esri.WorldGrayCanvas,
                        options = providerTileOptions(noWrap = TRUE)
       ) %>%
@@ -82,6 +82,10 @@ function(input, output, session) {
         downloadedData[[name]] <<- spData
       }
       addData(proxy, data=spData, color=as.character(row$color))
+      addLayersControl(proxy,
+        overlayGroups =c("markers", "lines", "polygons"),
+        options = layersControlOptions(collapsed=FALSE)
+      )
     })
   })
   
