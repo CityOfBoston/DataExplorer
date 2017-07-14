@@ -83,8 +83,8 @@ function(input, output, session) {
       }
       addData(proxy, data=spData, color=as.character(row$color))
       addLayersControl(proxy,
-        overlayGroups =c("markers", "lines", "polygons"),
-        options = layersControlOptions(collapsed=FALSE)
+                       overlayGroups =c("markers", "lines", "polygons"),
+                       options = layersControlOptions(collapsed=FALSE)
       )
     })
   })

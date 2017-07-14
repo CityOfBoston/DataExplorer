@@ -30,6 +30,7 @@ addData <- function(leaflet, data, color="blue"){
   }
 }
 
+
 addCityBound <-function(leaflet, weight = 2, color = "black"){
   addPolygons(leaflet, data = boundJson, weight = weight, color = color,
               fill = FALSE)
