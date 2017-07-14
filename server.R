@@ -1,9 +1,4 @@
-library(leaflet)
 library(RColorBrewer)
-library(scales)
-library(lattice)
-library(dplyr)
-library(rjson)
 library(geojsonio)
 library(colourpicker)
 
@@ -72,9 +67,19 @@ function(input, output, session) {
     proxy <- leafletProxy("map") %>%
       clearMarkers() %>%
       clearShapes()
+    # look at datasets that user wants to visualize
     by(df, 1:nrow(df), function(row){
-      link <- data[as.character(row$name)]
-      spData <- geojson_read(as.character(link), what="sp")
+      spData <- data.frame()
+      name <- as.character(row$name)
+      # if data is already downloaded, no need to download again
+      if(name %in% names(downloadedData)){
+        spData <- downloadedData[[name]]
+      }else{
+        link <- data[name]
+        spData <- geojson_read(as.character(link), what="sp")
+        names <- names(downloadedData)
+        downloadedData[[name]] <<- spData
+      }
       addData(proxy, data=spData, color=as.character(row$color))
     })
   })

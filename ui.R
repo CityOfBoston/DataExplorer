@@ -1,5 +1,3 @@
-library(leaflet)
-
 
 navbarPage("Analyze Boston Data Explorer", id="nav",
 

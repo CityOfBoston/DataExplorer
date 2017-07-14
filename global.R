@@ -1,5 +1,4 @@
-library(dplyr)
-library(rjson)
+library(leaflet)
 
 datasets <- fromJSON(readLines("https://data.boston.gov/api/3/action/package_search?q=geojson&rows=60"))$result$results
 titles <- lapply(datasets, function(x){
@@ -10,6 +9,8 @@ urls <- lapply(datasets, function(x){
 })
 data <- setNames(urls,titles)
 data <- data[order(names(data))]
+
+downloadedData <- list()
 
 addData <- function(leaflet, data, color="blue"){
   slots <- slotNames(data)
@@ -23,17 +24,13 @@ addData <- function(leaflet, data, color="blue"){
   }
 }
 
+# smartly get labels for data by looking for data columns that contain a matching pattern
 getLabel <- function(data){
   for(name in names(data)){
     if(grepl("name", name, ignore.case=TRUE)){
-      print(name)
+      # print(name)
       return(as.character(data[[name]]))
     }
   }
   return(NULL)
-  # if("Name" %in% names(data)){
-  #   return(as.character(data$Name))
-  # }else{
-  #   return(NULL)
-  # }
 }
