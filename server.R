@@ -18,11 +18,12 @@ function(input, output, session) {
     leaflet() %>%
       # the styling of the map itself
       addProviderTiles( # providers$CartoDB.Positron,
-        providers$Esri.NatGeoWorldMap,
+        providers$Esri.WorldGrayCanvas,
                        options = providerTileOptions(noWrap = TRUE)
       ) %>%
       # centering the view on a specific location (Boston)
-      setView(lng = -71.0589, lat = 42.31, zoom = 12)
+      setView(lng = -71.0589, lat = 42.31, zoom = 12) %>%
+      addCityBound()
   })
   
   # stored values of front end values
@@ -66,7 +67,8 @@ function(input, output, session) {
     df <- df()
     proxy <- leafletProxy("map") %>%
       clearMarkers() %>%
-      clearShapes()
+      clearShapes() %>%
+      addCityBound()
     # look at datasets that user wants to visualize
     by(df, 1:nrow(df), function(row){
       spData <- data.frame()
