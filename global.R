@@ -2,6 +2,7 @@ library(leaflet)
 library(rjson)
 library(geojsonio)
 library(shinyBS)
+library(DT)
 
 datasets <- fromJSON(readLines("https://data.boston.gov/api/3/action/package_search?q=geojson&rows=60"))$result$results
 bostonLink<-"http://bostonopendata-boston.opendata.arcgis.com/datasets/142500a77e2a4dbeb94a86f7e0b568bc_0.geojson"
@@ -16,13 +17,13 @@ data <- setNames(urls,titles)
 data <- data[order(names(data))]
 boundJson <- geojson_read(bostonLink, what = "sp")
 
-# cached data
 downloadedData <- list()
 
+# smartly add the correct kind of data to the map
 addData <- function(leaflet, data, color="blue"){
   slots <- slotNames(data)
   if("polygons" %in% slots){
-    addPolygons(leaflet, data=data, color=color, weight=2, group="polygons")
+    addPolygons(leaflet, data=data, color=color, weight=2, label=getLabel(data),group="polygons")
   }else if("lines" %in% slots){
     addPolylines(leaflet, data=data, color=color, weight=2, group="lines")
   }else{
@@ -31,6 +32,7 @@ addData <- function(leaflet, data, color="blue"){
   }
 }
 
+# adds the boston city bound to the map
 addCityBound <-function(leaflet, weight=2, color="black"){
   addPolygons(leaflet, data = boundJson, weight = weight, color = color,
               fill = FALSE)
@@ -40,7 +42,6 @@ addCityBound <-function(leaflet, weight=2, color="black"){
 getLabel <- function(data){
   for(name in names(data)){
     if(grepl("name", name, ignore.case=TRUE)){
-      # print(name)
       return(as.character(data[[name]]))
     }
   }

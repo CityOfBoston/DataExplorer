@@ -26,7 +26,7 @@ function(input, output, session) {
   })
   
   # stored values of front end values
-  features <- reactiveValues(rendered=c(1),names=c("Charging Stations"),
+  features <- reactiveValues(rendered=c(1),names=c("Public Schools"),
                              colors=c("blue"))
   
   # Increment reactive values used to store how may rows we have rendered
@@ -38,7 +38,7 @@ function(input, output, session) {
     features$colors <- lapply(features$rendered, function(i){
       input[[paste0('color',i)]]
     })
-    features$names <- c(features$names, "Charging Stations")
+    features$names <- c(features$names, "Public Schools")
     features$colors <- c(features$colors, "blue")
     features$rendered <- c(features$rendered, max(features$rendered)+1)
   })
@@ -103,6 +103,28 @@ function(input, output, session) {
       # returns the actual rows of collapse panels in the bsCollapse ui object
       do.call(bsCollapse, c(rows, open="collapse1", id="collapseGroup"))
     })
+  })
+  
+  
+  ## DATA TAB FUNCTIONS
+  
+  # renders the DT data table
+  output$datatable <- DT::renderDataTable({
+    DT::datatable(ds())
+  })
+  
+  # reactive data set for the the table
+  ds <- reactive({
+    if(length(df()) > 0){
+      downloadedData[[input$dataset]]@data
+    }
+  })
+  
+  # updates the choices for the data sets based on what has been chosen
+  observe({
+    updateSelectInput(session, "dataset",
+                      choices = df()$name
+    )
   })
   
   # zipsInBounds <- reactive({
@@ -242,20 +264,5 @@ function(input, output, session) {
 #       showZipcodePopup(zip, lat, lng)
 #       map %>% fitBounds(lng - dist, lat - dist, lng + dist, lat + dist)
 #     })
-#   })
-# 
-#   output$ziptable <- DT::renderDataTable({
-#     df <- cleantable %>%
-#       filter(
-#         Score >= input$minScore,
-#         Score <= input$maxScore,
-#         is.null(input$states) | State %in% input$states,
-#         is.null(input$cities) | City %in% input$cities,
-#         is.null(input$zipcodes) | Zipcode %in% input$zipcodes
-#       ) %>%
-#       mutate(Action = paste('<a class="go-map" href="" data-lat="', Lat, '" data-long="', Long, '" data-zip="', Zipcode, '"><i class="fa fa-crosshairs"></i></a>', sep=""))
-#     action <- DT::dataTableAjax(session, df)
-# 
-#     DT::datatable(df, options = list(ajax = list(url = action)), escape = FALSE)
 #   })
 }
