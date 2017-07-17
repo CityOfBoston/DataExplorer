@@ -18,10 +18,11 @@ navbarPage("Analyze Boston Data Explorer", id="nav",
                     width = 330, height = "auto",
                     h2("Data Explorer"),
                     uiOutput("dataDropdowns"),
-                    actionButton("add", "+"),
-                    actionButton("remove", "-"),
-                    actionButton("update", "Update Datalayers")
-      )
+                    bsButton("add", "", icon=icon("plus")),
+                    bsButton("remove", "", icon=icon("minus")),
+                    bsButton("update", "Update Datalayers", style="primary")
+      ),
+      uiOutput("modals")
     )
   ),
 
@@ -33,7 +34,5 @@ navbarPage("Analyze Boston Data Explorer", id="nav",
     ),
     hr(),
     DT::dataTableOutput("datatable")
-  ),
-
-  conditionalPanel("false", icon("crosshair"))
+  )
 )

@@ -17,15 +17,18 @@ data <- setNames(urls,titles)
 data <- data[order(names(data))]
 boundJson <- geojson_read(bostonLink, what = "sp")
 
-downloadedData <- list()
+downloadedData <- reactiveValues()
 
 # smartly add the correct kind of data to the map
-addData <- function(leaflet, data, color="blue"){
+addData <- function(leaflet, data, color="blue", cluster=FALSE){
   slots <- slotNames(data)
   if("polygons" %in% slots){
     addPolygons(leaflet, data=data, color=color, weight=2, label=getLabel(data),group="polygons")
   }else if("lines" %in% slots){
     addPolylines(leaflet, data=data, color=color, weight=2, group="lines")
+  }else if(cluster){
+    addCircleMarkers(leaflet, data=data, fillOpacity=0.6, color=color,
+                     label=getLabel(data), weight=2, clusterOptions=markerClusterOptions())
   }else{
     addCircles(leaflet, data=data, fillOpacity=0.6, color=color,
                      label = getLabel(data), weight=2, radius=100, group="markers")

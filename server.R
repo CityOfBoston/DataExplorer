@@ -89,7 +89,7 @@ function(input, output, session) {
   observe({
     output$dataDropdowns <- renderUI({
       # create rows of collapsible panels, one per dataset
-      rows <- lapply(features$rendered,function(i){
+      panels <- lapply(features$rendered,function(i){
         bsCollapsePanel(value = paste0("collapse",i),
           selectizeInput(paste0("data",i), "Data Set", titles,
                          selected = as.character(features$names[i]),
@@ -97,12 +97,20 @@ function(input, output, session) {
           colourInput(paste0("color",i), "Color", showColour="background",
                       value=features$colors[i],
                       palette="limited"),
+          # actionButton(paste0("openModal",i), "", icon=icon("cog")),
           title = paste("Data Set", i)
         )
       })
       # returns the actual rows of collapse panels in the bsCollapse ui object
-      do.call(bsCollapse, c(rows, open="collapse1", id="collapseGroup"))
+      do.call(bsCollapse, c(panels, open="collapse1", id="collapseGroup"))
     })
+    # output$modals <- renderUI({
+    #   modals <- lapply(features$rendered,function(i){
+    #     bsModal(id=paste0("optionsModal",i), title="More Options", trigger=paste0("openModal",i),
+    #             uiOutput("modalOutput"))
+    #   })
+    #   do.call(shiny::tagList, modals)
+    # })
   })
   
   
@@ -110,13 +118,8 @@ function(input, output, session) {
   
   # renders the DT data table
   output$datatable <- DT::renderDataTable({
-    DT::datatable(ds())
-  })
-  
-  # reactive data set for the the table
-  ds <- reactive({
     if(length(df()) > 0){
-      downloadedData[[input$dataset]]@data
+      DT::datatable(downloadedData[[input$dataset]]@data)
     }
   })
   
