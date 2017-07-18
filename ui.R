@@ -1,9 +1,6 @@
-
 navbarPage("Analyze Boston Data Explorer", id="nav",
-
   tabPanel("Interactive map",
     div(class="outer",
-
       tags$head(
         # Include our custom CSS
         includeCSS("styles.css"),

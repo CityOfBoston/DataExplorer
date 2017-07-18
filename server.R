@@ -29,15 +29,20 @@ function(input, output, session) {
   features <- reactiveValues(rendered=c(1),names=c("Public Schools"),
                              colors=c("blue"))
   
-  # Increment reactive values used to store how may rows we have rendered
-  observeEvent(input$add,{
-    if (max(features$rendered) > 8) return(NULL)
+  # utility function to save values into the reactive features
+  saveFeatures <- function(){
     features$names <- lapply(features$rendered, function(i){
       input[[paste0('data',i)]]
     })
     features$colors <- lapply(features$rendered, function(i){
       input[[paste0('color',i)]]
     })
+  }
+  
+  # Increment reactive values used to store how may rows we have rendered
+  observeEvent(input$add,{
+    if (max(features$rendered) > 8) return(NULL)
+    saveFeatures()
     features$names <- c(features$names, "Public Schools")
     features$colors <- c(features$colors, "blue")
     features$rendered <- c(features$rendered, max(features$rendered)+1)
@@ -53,10 +58,9 @@ function(input, output, session) {
   
   # input data for choices about datasets
   df <- eventReactive(input$update, {
+    saveFeatures()
     out <- lapply(features$rendered,function(i){
-      dataName <- paste0('data',i)
-      dataColor <- paste0('color',i)
-      data.frame(name=input[[dataName]], color=input[[dataColor]] )
+      data.frame(name=as.character(features$names[i]), color=as.character(features$colors[i]))
     })
     do.call(rbind,out)
   })
@@ -76,12 +80,16 @@ function(input, output, session) {
       if(name %in% names(downloadedData)){
         spData <- downloadedData[[name]]
       }else{
-        link <- data[name]
-        spData <- geojson_read(as.character(link), what="sp")
-        names <- names(downloadedData)
+        link <- as.character(data[name])
+        spData <- geojson_read(link, what="sp")
         downloadedData[[name]] <<- spData
       }
-      addData(proxy, data=spData, color=as.character(row$color))
+      proxy %>%
+        hideGroup("markers") %>%
+        hideGroup("lines") %>%
+        addData(data=spData, color=as.character(row$color)) %>%
+        showGroup("lines") %>%
+        showGroup("markers")
     })
   })
   
@@ -98,11 +106,13 @@ function(input, output, session) {
                       value=features$colors[i],
                       palette="limited"),
           # actionButton(paste0("openModal",i), "", icon=icon("cog")),
-          title = paste("Data Set", i)
+          # bsModal(id=paste0("optionsModal",i), title="More Options", trigger=paste0("openModal",i),
+          #                      uiOutput("modalOutput")),
+          title = HTML(titleWithColor(as.character(features$names[i]), features$colors[i]))
         )
       })
       # returns the actual rows of collapse panels in the bsCollapse ui object
-      do.call(bsCollapse, c(panels, open="collapse1", id="collapseGroup"))
+      do.call(bsCollapse, c(panels, open=paste0("collapse",length(features$rendered)), id="collapseGroup"))
     })
     # output$modals <- renderUI({
     #   modals <- lapply(features$rendered,function(i){
@@ -113,6 +123,9 @@ function(input, output, session) {
     # })
   })
   
+  titleWithColor <- function(title, color){
+    return(paste(title, paste0("<span style='background-color: ", color, "; width: 5px;'>&nbsp&nbsp&nbsp</span>")))
+  }
   
   ## DATA TAB FUNCTIONS
   
