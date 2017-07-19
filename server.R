@@ -124,7 +124,7 @@ function(input, output, session) {
   })
   
   titleWithColor <- function(title, color){
-    return(paste(title, paste0("<span style='background-color: ", color, "; width: 5px;'>&nbsp&nbsp&nbsp</span>")))
+    return(paste(paste0("<div class='colorbox' style='background: ", color, ";'/>"), title))
   }
   
   ## DATA TAB FUNCTIONS

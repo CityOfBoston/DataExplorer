@@ -32,7 +32,7 @@ addData <- function(leaflet, data, color="blue", cluster=FALSE){
                      group="markers")
   }else{
     addCircles(leaflet, data=data, fillOpacity=0.6, color=color,
-                     label = getLabel(data), weight=2, radius=100, group="markers")
+                     label = getLabel(data), weight=2, radius=80, group="markers")
   }
 }
 
