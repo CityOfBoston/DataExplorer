@@ -16,7 +16,7 @@ function(input, output, session) {
   output$map <- renderLeaflet({
     leaflet() %>%
       # the styling of the map itself
-      addProviderTiles( # providers$CartoDB.Positron,
+      addProviderTiles(
         providers$Esri.WorldGrayCanvas,
                        options = providerTileOptions(noWrap = TRUE)
       ) %>%

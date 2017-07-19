@@ -37,6 +37,7 @@ addData <- function(leaflet, data, color="blue", cluster=FALSE){
 }
 
 # adds the boston city bound to the map
+
 addCityBound <-function(leaflet, weight=2, color="black"){
   addPolygons(leaflet, data = boundJson, weight = weight, color = color,
               fill = FALSE)
