@@ -11,7 +11,7 @@ navbarPage("Analyze Boston Data Explorer", id="nav",
 
       # Shiny versions prior to 0.11 should use class="modal" instead.
       absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
-                    draggable = TRUE, top = 60, left = "auto", right = 20, bottom = "auto",
+                    draggable = FALSE, top = 80, left = "auto", right = 20, bottom = "auto",
                     width = 330, height = "auto",
                     h2("Data Explorer"),
                     uiOutput("dataDropdowns"),

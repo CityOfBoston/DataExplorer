@@ -99,7 +99,7 @@ function(input, output, session) {
       # create rows of collapsible panels, one per dataset
       panels <- lapply(features$rendered,function(i){
         bsCollapsePanel(value = paste0("collapse",i),
-          selectizeInput(paste0("data",i), "Data Set", titles,
+          selectizeInput(paste0("data",i), "Data Set", names(data),
                          selected = as.character(features$names[i]),
                          options=list(placeholder='Search for a Data Set')),
           colourInput(paste0("color",i), "Color", showColour="background",
