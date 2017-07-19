@@ -26,19 +26,24 @@ function(input, output, session) {
   })
   
   # stored values of front end values
-  features <- reactiveValues(rendered=c(1),names=c("Charging Stations"),
+  features <- reactiveValues(rendered=c(1),names=c("Public Schools"),
                              colors=c("blue"))
   
-  # Increment reactive values used to store how may rows we have rendered
-  observeEvent(input$add,{
-    if (max(features$rendered) > 8) return(NULL)
+  # utility function to save values into the reactive features
+  saveFeatures <- function(){
     features$names <- lapply(features$rendered, function(i){
       input[[paste0('data',i)]]
     })
     features$colors <- lapply(features$rendered, function(i){
       input[[paste0('color',i)]]
     })
-    features$names <- c(features$names, "Charging Stations")
+  }
+  
+  # Increment reactive values used to store how may rows we have rendered
+  observeEvent(input$add,{
+    if (max(features$rendered) > 8) return(NULL)
+    saveFeatures()
+    features$names <- c(features$names, "Public Schools")
     features$colors <- c(features$colors, "blue")
     features$rendered <- c(features$rendered, max(features$rendered)+1)
   })
@@ -53,10 +58,9 @@ function(input, output, session) {
   
   # input data for choices about datasets
   df <- eventReactive(input$update, {
+    saveFeatures()
     out <- lapply(features$rendered,function(i){
-      dataName <- paste0('data',i)
-      dataColor <- paste0('color',i)
-      data.frame(name=input[[dataName]], color=input[[dataColor]] )
+      data.frame(name=as.character(features$names[i]), color=as.character(features$colors[i]))
     })
     do.call(rbind,out)
   })
@@ -76,16 +80,16 @@ function(input, output, session) {
       if(name %in% names(downloadedData)){
         spData <- downloadedData[[name]]
       }else{
-        link <- data[name]
-        spData <- geojson_read(as.character(link), what="sp")
-        names <- names(downloadedData)
+        link <- as.character(data[name])
+        spData <- geojson_read(link, what="sp")
         downloadedData[[name]] <<- spData
       }
-      addData(proxy, data=spData, color=as.character(row$color))
-      addLayersControl(proxy,
-                       overlayGroups =c("markers", "lines", "polygons"),
-                       options = layersControlOptions(collapsed=FALSE)
-      )
+      proxy %>%
+        hideGroup("markers") %>%
+        hideGroup("lines") %>%
+        addData(data=spData, color=as.character(row$color)) %>%
+        showGroup("lines") %>%
+        showGroup("markers")
     })
   })
   
@@ -93,7 +97,7 @@ function(input, output, session) {
   observe({
     output$dataDropdowns <- renderUI({
       # create rows of collapsible panels, one per dataset
-      rows <- lapply(features$rendered,function(i){
+      panels <- lapply(features$rendered,function(i){
         bsCollapsePanel(value = paste0("collapse",i),
           selectizeInput(paste0("data",i), "Data Set", titles,
                          selected = as.character(features$names[i]),
@@ -101,12 +105,42 @@ function(input, output, session) {
           colourInput(paste0("color",i), "Color", showColour="background",
                       value=features$colors[i],
                       palette="limited"),
-          title = paste("Data Set", i)
+          # actionButton(paste0("openModal",i), "", icon=icon("cog")),
+          # bsModal(id=paste0("optionsModal",i), title="More Options", trigger=paste0("openModal",i),
+          #                      uiOutput("modalOutput")),
+          title = HTML(titleWithColor(as.character(features$names[i]), features$colors[i]))
         )
       })
       # returns the actual rows of collapse panels in the bsCollapse ui object
-      do.call(bsCollapse, c(rows, open="collapse1", id="collapseGroup"))
+      do.call(bsCollapse, c(panels, open=paste0("collapse",length(features$rendered)), id="collapseGroup"))
     })
+    # output$modals <- renderUI({
+    #   modals <- lapply(features$rendered,function(i){
+    #     bsModal(id=paste0("optionsModal",i), title="More Options", trigger=paste0("openModal",i),
+    #             uiOutput("modalOutput"))
+    #   })
+    #   do.call(shiny::tagList, modals)
+    # })
+  })
+  
+  titleWithColor <- function(title, color){
+    return(paste(paste0("<div class='colorbox' style='background: ", color, ";'/>"), title))
+  }
+  
+  ## DATA TAB FUNCTIONS
+  
+  # renders the DT data table
+  output$datatable <- DT::renderDataTable({
+    if(length(df()) > 0){
+      DT::datatable(downloadedData[[input$dataset]]@data)
+    }
+  })
+  
+  # updates the choices for the data sets based on what has been chosen
+  observe({
+    updateSelectInput(session, "dataset",
+                      choices = df()$name
+    )
   })
   
   # zipsInBounds <- reactive({
@@ -246,20 +280,5 @@ function(input, output, session) {
 #       showZipcodePopup(zip, lat, lng)
 #       map %>% fitBounds(lng - dist, lat - dist, lng + dist, lat + dist)
 #     })
-#   })
-# 
-#   output$ziptable <- DT::renderDataTable({
-#     df <- cleantable %>%
-#       filter(
-#         Score >= input$minScore,
-#         Score <= input$maxScore,
-#         is.null(input$states) | State %in% input$states,
-#         is.null(input$cities) | City %in% input$cities,
-#         is.null(input$zipcodes) | Zipcode %in% input$zipcodes
-#       ) %>%
-#       mutate(Action = paste('<a class="go-map" href="" data-lat="', Lat, '" data-long="', Long, '" data-zip="', Zipcode, '"><i class="fa fa-crosshairs"></i></a>', sep=""))
-#     action <- DT::dataTableAjax(session, df)
-# 
-#     DT::datatable(df, options = list(ajax = list(url = action)), escape = FALSE)
 #   })
 }

@@ -1,9 +1,6 @@
-
 navbarPage("Analyze Boston Data Explorer", id="nav",
-
   tabPanel("Interactive map",
     div(class="outer",
-
       tags$head(
         # Include our custom CSS
         includeCSS("styles.css"),
@@ -18,40 +15,21 @@ navbarPage("Analyze Boston Data Explorer", id="nav",
                     width = 330, height = "auto",
                     h2("Data Explorer"),
                     uiOutput("dataDropdowns"),
-                    actionButton("add", "+"),
-                    actionButton("remove", "-"),
-                    actionButton("update", "Update Datalayers")
-      )
+                    bsButton("add", "", icon=icon("plus")),
+                    bsButton("remove", "", icon=icon("minus")),
+                    bsButton("update", "Update Datalayers", style="primary")
+      ),
+      uiOutput("modals")
     )
   ),
 
-  tabPanel("Other stuff",
+  tabPanel("Data Viewer",
     fluidRow(
       column(3,
-        selectInput("states", "States", c("All states"="", structure(state.abb, names=state.name), "Washington, DC"="DC"), multiple=TRUE)
-      ),
-      column(3,
-        conditionalPanel("input.states",
-          selectInput("cities", "Cities", c("All cities"=""), multiple=TRUE)
-        )
-      ),
-      column(3,
-        conditionalPanel("input.states",
-          selectInput("zipcodes", "Zipcodes", c("All zipcodes"=""), multiple=TRUE)
-        )
-      )
-    ),
-    fluidRow(
-      column(1,
-        numericInput("minScore", "Min score", min=0, max=100, value=0)
-      ),
-      column(1,
-        numericInput("maxScore", "Max score", min=0, max=100, value=100)
+        selectInput("dataset", "Data Sets", choices=NULL)
       )
     ),
     hr(),
-    DT::dataTableOutput("ziptable")
-  ),
-
-  conditionalPanel("false", icon("crosshair"))
+    DT::dataTableOutput("datatable")
+  )
 )
