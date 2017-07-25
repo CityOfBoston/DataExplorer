@@ -1,5 +1,6 @@
 library(RColorBrewer)
 library(colourpicker)
+# library(mapview)
 
 # # Leaflet bindings are a bit slow; for now we'll just sample to compensate
 # set.seed(100)
@@ -11,10 +12,15 @@ library(colourpicker)
 function(input, output, session) {
 
   ## Interactive Map ###########################################
-
+  
+  m <- leaflet()
+  
+  nextId <- 2
+  minModuleCalled <- 0
+  
   # Create the map
   output$map <- renderLeaflet({
-    leaflet() %>%
+    m <- leaflet() %>%
       # the styling of the map itself
       addProviderTiles(
         providers$Esri.WorldGrayCanvas,
@@ -26,43 +32,34 @@ function(input, output, session) {
   })
   
   # stored values of front end values
-  features <- reactiveValues(rendered=c(1),names=c("Public Schools"),
+  features <- reactiveValues(id=c(1),names=c("Public Schools"),
                              colors=c("blue"))
   
   # utility function to save values into the reactive features
   saveFeatures <- function(){
-    features$names <- lapply(features$rendered, function(i){
-      input[[paste0('data',i)]]
+    features$names <- lapply(features$id, function(i){
+      input[[NS(i)('data')]]
     })
-    features$colors <- lapply(features$rendered, function(i){
-      input[[paste0('color',i)]]
+    features$colors <- lapply(features$id, function(i){
+      input[[NS(i)('color')]]
     })
   }
   
   # Increment reactive values used to store how may rows we have rendered
   observeEvent(input$add,{
-    if (max(features$rendered) > 8) return(NULL)
+    if (length(features$id) > 8) return(NULL)
     saveFeatures()
     features$names <- c(features$names, "Public Schools")
     features$colors <- c(features$colors, "blue")
-    features$rendered <- c(features$rendered, max(features$rendered)+1)
-  })
-  
-  # Remove reactive values
-  observeEvent(input$remove,{
-    if(max(features$rendered) < 2) return(NULL)
-    features$names <- head(features$names, -1)
-    features$colors <- head(features$colors, -1)
-    features$rendered <- head(features$rendered, -1)
+    # features$id <- c(features$id, max(features$id)+1)
+    features$id <- c(features$id, nextId)
+    nextId <<- nextId + 1
   })
   
   # input data for choices about datasets
   df <- eventReactive(input$update, {
     saveFeatures()
-    out <- lapply(features$rendered,function(i){
-      data.frame(name=as.character(features$names[i]), color=as.character(features$colors[i]))
-    })
-    do.call(rbind,out)
+    data.frame(name=as.character(features$names), color=as.character(features$colors))
   })
   
   # add data whenever the df is updated
@@ -97,25 +94,25 @@ function(input, output, session) {
   observe({
     output$dataDropdowns <- renderUI({
       # create rows of collapsible panels, one per dataset
-      panels <- lapply(features$rendered,function(i){
-        bsCollapsePanel(value = paste0("collapse",i),
-          selectizeInput(paste0("data",i), "Data Set", names(data),
-                         selected = as.character(features$names[i]),
-                         options=list(placeholder='Search for a Data Set')),
-          colourInput(paste0("color",i), "Color", showColour="background",
-                      value=features$colors[i],
-                      palette="limited"),
-          # actionButton(paste0("openModal",i), "", icon=icon("cog")),
-          # bsModal(id=paste0("optionsModal",i), title="More Options", trigger=paste0("openModal",i),
-          #                      uiOutput("modalOutput")),
-          title = HTML(titleWithColor(as.character(features$names[i]), features$colors[i]))
-        )
+      rownum <- 0
+      lastId <- 0
+      panels <- lapply(features$id,function(i){
+        rownum <<- rownum + 1
+        lastId <<- i
+        dataSelectPanelUI(id=i, features, rownum)
+      })
+      lapply(features$id, function(i){
+        if(i > minModuleCalled){
+          print(paste("new module",i))
+          callModule(dataSelectPanel, id=i, features, i)
+          minModuleCalled <<- i
+        }
       })
       # returns the actual rows of collapse panels in the bsCollapse ui object
-      do.call(bsCollapse, c(panels, open=paste0("collapse",length(features$rendered)), id="collapseGroup"))
+      do.call(bsCollapse, c(panels, open=NS(lastId)("collapse"), id="collapseGroup"))
     })
     # output$modals <- renderUI({
-    #   modals <- lapply(features$rendered,function(i){
+    #   modals <- lapply(features$id,function(i){
     #     bsModal(id=paste0("optionsModal",i), title="More Options", trigger=paste0("openModal",i),
     #             uiOutput("modalOutput"))
     #   })
@@ -123,9 +120,9 @@ function(input, output, session) {
     # })
   })
   
-  titleWithColor <- function(title, color){
-    return(paste(paste0("<div class='colorbox' style='background: ", color, ";'/>"), title))
-  }
+  # observeEvent(input$snapshot, {
+  #   mapshot(m, file='~/testPlot.png')
+  # })
   
   ## DATA TAB FUNCTIONS
   

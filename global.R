@@ -37,7 +37,6 @@ addData <- function(leaflet, data, color="blue", cluster=FALSE){
 }
 
 # adds the boston city bound to the map
-
 addCityBound <-function(leaflet, weight=2, color="black"){
   addPolygons(leaflet, data = boundJson, weight = weight, color = color,
               fill = FALSE)
@@ -51,4 +50,39 @@ getLabel <- function(data){
     }
   }
   return(NULL)
+}
+
+# data select module
+dataSelectPanelUI <- function(id, features, rownum){
+  ns <- NS(id)
+  bsCollapsePanel(value = ns("collapse"),
+                  selectizeInput(ns("data"), "Data Set", names(data),
+                                 selected = as.character(features$names[rownum]),
+                                 options=list(placeholder='Search for a Data Set')),
+                  colourInput(ns("color"), "Color", showColour="background",
+                              value=features$colors[rownum],
+                              palette="limited"),
+                  actionButton(ns("remove"), "x"),
+                  # actionButton(paste0("openModal",i), "", icon=icon("cog")),
+                  # bsModal(id=paste0("optionsModal",i), title="More Options", trigger=paste0("openModal",i),
+                  #                      uiOutput("modalOutput")),
+                  title = HTML(titleWithColor(as.character(features$names[rownum]), features$colors[rownum]))
+  )
+}
+
+dataSelectPanel <- function(input, output, session, features, id){
+  observeEvent(input$remove, {
+    if(length(features$id) < 2){
+      return()
+    }
+    selectionVector = features$id != id
+    features$id <- features$id[selectionVector]
+    features$names <- features$names[selectionVector]
+    features$colors <- features$colors[selectionVector]
+  })
+}
+
+# helper function to create titles with a colored label
+titleWithColor <- function(title, color){
+  return(paste(paste0("<div class='colorbox' style='background: ", color, ";'/>"), title))
 }

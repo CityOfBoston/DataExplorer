@@ -16,8 +16,9 @@ navbarPage("Analyze Boston Data Explorer", id="nav",
                     h2("Data Explorer"),
                     uiOutput("dataDropdowns"),
                     bsButton("add", "", icon=icon("plus")),
-                    bsButton("remove", "", icon=icon("minus")),
+                    # bsButton("remove", "", icon=icon("minus")),
                     bsButton("update", "Update Datalayers", style="primary")
+                    # bsButton("snapshot", "Export", style="secondary")
       ),
       uiOutput("modals")
     )
