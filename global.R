@@ -57,28 +57,41 @@ dataSelectPanelUI <- function(id, features, rownum){
   ns <- NS(id)
   bsCollapsePanel(value = ns("collapse"),
                   selectizeInput(ns("data"), "Data Set", names(data),
-                                 selected = as.character(features$names[rownum]),
+                                 selected = as.character(features$df$names[rownum]),
                                  options=list(placeholder='Search for a Data Set')),
                   colourInput(ns("color"), "Color", showColour="background",
-                              value=features$colors[rownum],
+                              value=features$df$colors[rownum],
                               palette="limited"),
-                  actionButton(ns("remove"), "x"),
                   # actionButton(paste0("openModal",i), "", icon=icon("cog")),
                   # bsModal(id=paste0("optionsModal",i), title="More Options", trigger=paste0("openModal",i),
                   #                      uiOutput("modalOutput")),
-                  title = HTML(titleWithColor(as.character(features$names[rownum]), features$colors[rownum]))
+                  title = tags$div(HTML(titleWithColor(features$df$names[rownum], features$df$colors[rownum])),
+                                   conditionalPanel('output.moreThanOnePanel',
+                                     actionButton(ns("remove"), "", icon=icon('times-circle'),
+                                            style = "float: right; height: 20px; padding-top:0px;"),
+                                     style = "float:right; height: 20px;"))
   )
 }
 
-dataSelectPanel <- function(input, output, session, features, id){
+dataSelectPanel <- function(input, output, session, features, panelId){
   observeEvent(input$remove, {
-    if(length(features$id) < 2){
+    if(length(features$df$id) < 2){
       return()
     }
-    selectionVector = features$id != id
-    features$id <- features$id[selectionVector]
-    features$names <- features$names[selectionVector]
-    features$colors <- features$colors[selectionVector]
+    selectionVector = features$df$id != panelId
+    features$df <- features$df[selectionVector,]
+  })
+  
+  observe({
+    if(!is.null(input$data) && input$data != ''){
+      features$df[features$df$id==panelId,'names'] <- input$data
+    }
+  })
+  
+  observe({
+    if(!is.null(input$color) && input$color != ''){
+      features$df[features$df$id==panelId, 'colors'] <- input$color
+    }
   })
 }
 

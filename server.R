@@ -32,34 +32,32 @@ function(input, output, session) {
   })
   
   # stored values of front end values
-  features <- reactiveValues(id=c(1),names=c("Public Schools"),
-                             colors=c("blue"))
+  features <- reactiveValues(df=data.frame(id=c(1),names=c("Public Schools"),
+                             colors=c("blue"), stringsAsFactors=FALSE))
   
   # utility function to save values into the reactive features
   saveFeatures <- function(){
-    features$names <- lapply(features$id, function(i){
+    features$df$names <- lapply(features$df$id, function(i){
       input[[NS(i)('data')]]
     })
-    features$colors <- lapply(features$id, function(i){
+    features$df$colors <- lapply(features$df$id, function(i){
       input[[NS(i)('color')]]
     })
   }
   
   # Increment reactive values used to store how may rows we have rendered
   observeEvent(input$add,{
-    if (length(features$id) > 8) return(NULL)
+    if (length(features$df$id) > 8) return(NULL)
     saveFeatures()
-    features$names <- c(features$names, "Public Schools")
-    features$colors <- c(features$colors, "blue")
-    # features$id <- c(features$id, max(features$id)+1)
-    features$id <- c(features$id, nextId)
+    newRow <- c(id=nextId, names="Public Schools", colors="blue")
+    features$df <- rbind(features$df, newRow)
     nextId <<- nextId + 1
   })
   
   # input data for choices about datasets
   df <- eventReactive(input$update, {
     saveFeatures()
-    data.frame(name=as.character(features$names), color=as.character(features$colors))
+    data.frame(name=as.character(features$df$names), color=as.character(features$df$colors))
   })
   
   # add data whenever the df is updated
@@ -96,15 +94,15 @@ function(input, output, session) {
       # create rows of collapsible panels, one per dataset
       rownum <- 0
       lastId <- 0
-      panels <- lapply(features$id,function(i){
+      panels <- lapply(features$df$id,function(i){
         rownum <<- rownum + 1
         lastId <<- i
         dataSelectPanelUI(id=i, features, rownum)
       })
-      lapply(features$id, function(i){
+      lapply(features$df$id, function(i){
         if(i > minModuleCalled){
           print(paste("new module",i))
-          callModule(dataSelectPanel, id=i, features, i)
+          callModule(dataSelectPanel, i, features, i)
           minModuleCalled <<- i
         }
       })
@@ -112,12 +110,16 @@ function(input, output, session) {
       do.call(bsCollapse, c(panels, open=NS(lastId)("collapse"), id="collapseGroup"))
     })
     # output$modals <- renderUI({
-    #   modals <- lapply(features$id,function(i){
+    #   modals <- lapply(features$df$id,function(i){
     #     bsModal(id=paste0("optionsModal",i), title="More Options", trigger=paste0("openModal",i),
     #             uiOutput("modalOutput"))
     #   })
     #   do.call(shiny::tagList, modals)
     # })
+  })
+  
+  output$moreThanOnePanel <- reactive({
+    length(features$df$id) > 1
   })
   
   # observeEvent(input$snapshot, {
