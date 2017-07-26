@@ -4,7 +4,9 @@ library(geojsonio)
 library(shinyBS)
 library(DT)
 
-datasets <- fromJSON(readLines("https://data.boston.gov/api/3/action/package_search?q=geojson&rows=60"))$result$results
+# the geospatial datasets from analyze boston (maxes at 100 data sets for now, can remove if desired)
+datasets <- fromJSON(readLines("https://data.boston.gov/api/3/action/package_search?q=geojson&rows=100"))$result$results
+# boston boundary
 bostonLink<-"http://bostonopendata-boston.opendata.arcgis.com/datasets/142500a77e2a4dbeb94a86f7e0b568bc_0.geojson"
 
 titles <- lapply(datasets, function(x){
@@ -17,6 +19,7 @@ data <- setNames(urls,titles)
 data <- data[order(names(data))]
 boundJson <- geojson_read(bostonLink, what = "sp")
 
+# reactive values list of cached data
 downloadedData <- reactiveValues()
 
 # smartly add the correct kind of data to the map
@@ -73,7 +76,9 @@ dataSelectPanelUI <- function(id, features, rownum){
   )
 }
 
+# server function for data selects
 dataSelectPanel <- function(input, output, session, features, panelId){
+  # logic for the "remove" panel button
   observeEvent(input$remove, {
     if(length(features$df$id) < 2){
       return()
@@ -82,12 +87,14 @@ dataSelectPanel <- function(input, output, session, features, panelId){
     features$df <- features$df[selectionVector,]
   })
   
+  # live updating the data set name
   observe({
     if(!is.null(input$data) && input$data != ''){
       features$df[features$df$id==panelId,'names'] <- input$data
     }
   })
   
+  # live updating the data color
   observe({
     if(!is.null(input$color) && input$color != ''){
       features$df[features$df$id==panelId, 'colors'] <- input$color

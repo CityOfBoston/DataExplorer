@@ -15,7 +15,9 @@ function(input, output, session) {
   
   m <- leaflet()
   
+  # the id of the panels
   nextId <- 2
+  # counter for tracking which module has had its server function called
   minModuleCalled <- 0
   
   # Create the map
@@ -79,6 +81,7 @@ function(input, output, session) {
         spData <- geojson_read(link, what="sp")
         downloadedData[[name]] <<- spData
       }
+      # add/remove layers in a specific order to have markers/lines on top of polygons
       proxy %>%
         hideGroup("markers") %>%
         hideGroup("lines") %>%
@@ -91,9 +94,9 @@ function(input, output, session) {
   # render the UI, adding the correct number of dataDropdowns
   observe({
     output$dataDropdowns <- renderUI({
-      # create rows of collapsible panels, one per dataset
       rownum <- 0
       lastId <- 0
+      # creates a list of collapsible panels, one per dataset
       panels <- lapply(features$df$id,function(i){
         rownum <<- rownum + 1
         lastId <<- i
@@ -106,7 +109,7 @@ function(input, output, session) {
           minModuleCalled <<- i
         }
       })
-      # returns the actual rows of collapse panels in the bsCollapse ui object
+      # returns the actual rows of collapse panels in the bsCollapse ui object, the last panel is marked as open
       do.call(bsCollapse, c(panels, open=NS(lastId)("collapse"), id="collapseGroup"))
     })
     # output$modals <- renderUI({
@@ -118,6 +121,8 @@ function(input, output, session) {
     # })
   })
   
+  # boolean value representing whether a there are more than one panel or not
+  # used to show or hide the "remove" button on each panel
   output$moreThanOnePanel <- reactive({
     length(features$df$id) > 1
   })
