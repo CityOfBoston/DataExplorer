@@ -1,5 +1,6 @@
 navbarPage("Analyze Boston Data Explorer", id="nav",
   tabPanel("Interactive map",
+    bsModal("optionsModal", "Advanced Options", "", uiOutput("optionsModalContent")),
     div(class="outer",
       tags$head(
         # Include our custom CSS
@@ -17,11 +18,9 @@ navbarPage("Analyze Boston Data Explorer", id="nav",
                     uiOutput("dataDropdowns"),
                     bsButton("add", "", icon=icon("plus")),
                     bsButton("update", "Update Datalayers", style="primary"),
-                    # bsButton("snapshot", "Export", style="secondary")
                     # hidden text to keep the output$moreThanOnePanel value bound and updating
                     div(textOutput("moreThanOnePanel"), style="color:white; height:0px")
-      ),
-      uiOutput("modals")
+      )
     )
   ),
 

@@ -62,22 +62,23 @@ dataSelectPanelUI <- function(id, features, rownum){
                   selectizeInput(ns("data"), "Data Set", names(data),
                                  selected = as.character(features$df$names[rownum]),
                                  options=list(placeholder='Search for a Data Set')),
-                  colourInput(ns("color"), "Color", showColour="background",
-                              value=features$df$colors[rownum],
-                              palette="limited"),
-                  # actionButton(paste0("openModal",i), "", icon=icon("cog")),
-                  # bsModal(id=paste0("optionsModal",i), title="More Options", trigger=paste0("openModal",i),
-                  #                      uiOutput("modalOutput")),
-                  title = tags$div(HTML(titleWithColor(features$df$names[rownum], features$df$colors[rownum])),
+                  fluidRow(
+                    column(10, colourInput(ns("color"), "Color", showColour="background",
+                                                 value=features$df$color[rownum],
+                                                 palette="limited")),
+                    column(2, actionButton(ns("openModal"), "", icon=icon("cog")), style="margin-top: 25px;
+                           margin-left:-20px;")
+                  ),
+                  title = tags$div(HTML(titleWithColor(features$df$names[rownum], features$df$color[rownum])),
                                    conditionalPanel('output.moreThanOnePanel',
-                                     actionButton(ns("remove"), "", icon=icon('times-circle'),
+                                     actionButton(ns("remove"), "", icon=icon('times'),
                                             style = "float: right; height: 20px; padding-top:0px;"),
                                      style = "float:right; height: 20px;"))
   )
 }
 
 # server function for data selects
-dataSelectPanel <- function(input, output, session, features, panelId){
+dataSelectPanel <- function(input, output, session, features, panelId, realSession){
   # logic for the "remove" panel button
   observeEvent(input$remove, {
     if(length(features$df$id) < 2){
@@ -85,6 +86,7 @@ dataSelectPanel <- function(input, output, session, features, panelId){
     }
     selectionVector = features$df$id != panelId
     features$df <- features$df[selectionVector,]
+    print(features$df)
   })
   
   # live updating the data set name
@@ -97,8 +99,14 @@ dataSelectPanel <- function(input, output, session, features, panelId){
   # live updating the data color
   observe({
     if(!is.null(input$color) && input$color != ''){
-      features$df[features$df$id==panelId, 'colors'] <- input$color
+      features$df[features$df$id==panelId, 'color'] <- input$color
     }
+  })
+  
+  # open advanced options and populate modal
+  observeEvent(input$openModal, {
+    toggleModal(realSession, "optionsModal")
+    features$modalId <- panelId
   })
 }
 

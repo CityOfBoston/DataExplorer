@@ -13,8 +13,6 @@ function(input, output, session) {
 
   ## Interactive Map ###########################################
   
-  m <- leaflet()
-  
   # the id of the panels
   nextId <- 2
   # counter for tracking which module has had its server function called
@@ -22,7 +20,7 @@ function(input, output, session) {
   
   # Create the map
   output$map <- renderLeaflet({
-    m <- leaflet() %>%
+    leaflet() %>%
       # the styling of the map itself
       addProviderTiles(
         providers$Esri.WorldGrayCanvas,
@@ -35,14 +33,15 @@ function(input, output, session) {
   
   # stored values of front end values
   features <- reactiveValues(df=data.frame(id=c(1),names=c("Public Schools"),
-                             colors=c("blue"), stringsAsFactors=FALSE))
+                             color=c("blue"), cluster=c(FALSE), stringsAsFactors=FALSE),
+                             modalId=0)
   
   # utility function to save values into the reactive features
   saveFeatures <- function(){
     features$df$names <- lapply(features$df$id, function(i){
       input[[NS(i)('data')]]
     })
-    features$df$colors <- lapply(features$df$id, function(i){
+    features$df$color <- lapply(features$df$id, function(i){
       input[[NS(i)('color')]]
     })
   }
@@ -51,7 +50,7 @@ function(input, output, session) {
   observeEvent(input$add,{
     if (length(features$df$id) > 8) return(NULL)
     saveFeatures()
-    newRow <- c(id=nextId, names="Public Schools", colors="blue")
+    newRow <- c(id=nextId, names="Public Schools", color="blue", cluster=FALSE)
     features$df <- rbind(features$df, newRow)
     nextId <<- nextId + 1
   })
@@ -59,7 +58,7 @@ function(input, output, session) {
   # input data for choices about datasets
   df <- eventReactive(input$update, {
     saveFeatures()
-    data.frame(name=as.character(features$df$names), color=as.character(features$df$colors))
+    features$df
   })
   
   # add data whenever the df is updated
@@ -67,6 +66,7 @@ function(input, output, session) {
     df <- df()
     proxy <- leafletProxy("map") %>%
       clearMarkers() %>%
+      clearMarkerClusters() %>%
       clearShapes() %>%
       addCityBound()
     # look at datasets that user wants to visualize
@@ -85,7 +85,7 @@ function(input, output, session) {
       proxy %>%
         hideGroup("markers") %>%
         hideGroup("lines") %>%
-        addData(data=spData, color=as.character(row$color)) %>%
+        addData(data=spData, color=as.character(row$color), cluster=row$cluster) %>%
         showGroup("lines") %>%
         showGroup("markers")
     })
@@ -105,20 +105,13 @@ function(input, output, session) {
       lapply(features$df$id, function(i){
         if(i > minModuleCalled){
           print(paste("new module",i))
-          callModule(dataSelectPanel, i, features, i)
+          callModule(dataSelectPanel, i, features, i, session)
           minModuleCalled <<- i
         }
       })
       # returns the actual rows of collapse panels in the bsCollapse ui object, the last panel is marked as open
       do.call(bsCollapse, c(panels, open=NS(lastId)("collapse"), id="collapseGroup"))
     })
-    # output$modals <- renderUI({
-    #   modals <- lapply(features$df$id,function(i){
-    #     bsModal(id=paste0("optionsModal",i), title="More Options", trigger=paste0("openModal",i),
-    #             uiOutput("modalOutput"))
-    #   })
-    #   do.call(shiny::tagList, modals)
-    # })
   })
   
   # boolean value representing whether a there are more than one panel or not
@@ -127,9 +120,27 @@ function(input, output, session) {
     length(features$df$id) > 1
   })
   
-  # observeEvent(input$snapshot, {
-  #   mapshot(m, file='~/testPlot.png')
-  # })
+  observe({
+    if(features$modalId > 0){
+      output$optionsModalContent <- renderUI({
+        advancedOptionsContentInput(features$modalId)
+      })
+      callModule(advancedOptionsContent, features$modalId, features$modalId)
+    }
+  })
+  
+  advancedOptionsContentInput <- function(id){
+    ns <- NS(id)
+    checkboxInput(ns("cluster"), "Cluster Graph (Only for Point Data)")
+  }
+  
+  advancedOptionsContent <- function(input, output, session, modalId){
+    observe({
+      if(!is.null(input$cluster)){
+        features$df[features$df$id==modalId,'cluster'] <- input$cluster
+      }
+    })
+  }
   
   ## DATA TAB FUNCTIONS
   
