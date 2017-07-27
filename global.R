@@ -4,6 +4,7 @@ library(geojsonio)
 library(shinyBS)
 library(DT)
 
+
 # the geospatial datasets from analyze boston (maxes at 100 data sets for now, can remove if desired)
 datasets <- fromJSON(readLines("https://data.boston.gov/api/3/action/package_search?q=geojson&rows=100"))$result$results
 # boston boundary
@@ -60,7 +61,7 @@ dataSelectPanelUI <- function(id, features, rownum){
   ns <- NS(id)
   bsCollapsePanel(value = ns("collapse"),
                   selectizeInput(ns("data"), "Data Set", names(data),
-                                 selected = as.character(features$df$names[rownum]),
+                                 selected = as.character(features$df$name[rownum]),
                                  options=list(placeholder='Search for a Data Set')),
                   fluidRow(
                     column(10, colourInput(ns("color"), "Color", showColour="background",
@@ -69,7 +70,7 @@ dataSelectPanelUI <- function(id, features, rownum){
                     column(2, actionButton(ns("openModal"), "", icon=icon("cog")), style="margin-top: 25px;
                            margin-left:-20px;")
                   ),
-                  title = tags$div(HTML(titleWithColor(features$df$names[rownum], features$df$color[rownum])),
+                  title = tags$div(HTML(titleWithColor(features$df$name[rownum], features$df$color[rownum])),
                                    conditionalPanel('output.moreThanOnePanel',
                                      actionButton(ns("remove"), "", icon=icon('times'),
                                             style = "float: right; height: 20px; padding-top:0px;"),
@@ -92,7 +93,7 @@ dataSelectPanel <- function(input, output, session, features, panelId, realSessi
   # live updating the data set name
   observe({
     if(!is.null(input$data) && input$data != ''){
-      features$df[features$df$id==panelId,'names'] <- input$data
+      features$df[features$df$id==panelId,'name'] <- input$data
     }
   })
   
