@@ -4,7 +4,8 @@ navbarPage("Analyze Boston Data Explorer", id="nav",
       tags$head(
         # Include our custom CSS
         includeCSS("styles.css"),
-        includeScript("gomap.js")
+        includeScript("gomap.js"),
+        includeScript("message-handler.js")
       ),
 
       leafletOutput("map", width="100%", height="100%"),
@@ -17,7 +18,24 @@ navbarPage("Analyze Boston Data Explorer", id="nav",
                     uiOutput("dataDropdowns"),
                     bsButton("add", "", icon=icon("plus")),
                     bsButton("remove", "", icon=icon("minus")),
-                    bsButton("update", "Update Datalayers", style="primary")
+                    bsButton("update", "Update Datalayers", style="primary"),
+                    bsButton("snap", "Save picture", style="primary")
+      ),
+      absolutePanel(id = "share", class = "panel panel-default", fixed = TRUE,
+                    draggable = FALSE, top = "auto", right = "auto", left = 10, bottom = 10,
+                    width = "auto", height = "auto",
+                    h5("Share"),
+                    tags$div(HTML('<a class="twitter-share-button"
+  href="https://twitter.com/intent/tweet"
+                                  data-size="large">
+                                  Tweet</a> <link rel="canonical"
+  href="/web/tweet-button">'))#,
+                    #tags$div(HTML('<iframe src="https://www.facebook.com/plugins/share_button.php?href=https%3A%2F%2Fdevelopers.facebook.com%2Fdocs%2Fplugins%2F&layout=button_count&size=small&mobile_iframe=true&width=88&height=20&appId" width="88" height="20" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowTransparency="true"></iframe>'))
+                    #uiOutput("dataDropdowns"),
+                   # bsButton("add", "", icon=icon("plus")),
+                   # bsButton("remove", "", icon=icon("minus")),
+                   # bsButton("update", "Update Datalayers", style="primary"),
+                   # bsButton("snap", "Save picture", style="primary")
       ),
       uiOutput("modals")
     )

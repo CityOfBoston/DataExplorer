@@ -1,5 +1,6 @@
 library(RColorBrewer)
 library(colourpicker)
+library(mapview)
 
 # # Leaflet bindings are a bit slow; for now we'll just sample to compensate
 # set.seed(100)
@@ -8,13 +9,13 @@ library(colourpicker)
 # # will be drawn last and thus be easier to see
 # zipdata <- zipdata[order(zipdata$centile),]
 
-function(input, output, session) {
+function(input, output, session) { 
 
   ## Interactive Map ###########################################
-
+  m <- leaflet()
   # Create the map
   output$map <- renderLeaflet({
-    leaflet() %>%
+    m <<- leaflet() %>%
       # the styling of the map itself
       addProviderTiles(
         providers$Esri.WorldGrayCanvas,
@@ -23,8 +24,10 @@ function(input, output, session) {
       # centering the view on a specific location (Boston)
       setView(lng = -71.0589, lat = 42.31, zoom = 12) %>%
       addCityBound()
+      
   })
-  
+  ###proxy <- leafletProxy("map") ######
+  ###proxy <- leaflet("map") ######
   # stored values of front end values
   features <- reactiveValues(rendered=c(1),names=c("Public Schools"),
                              colors=c("blue"))
@@ -68,7 +71,9 @@ function(input, output, session) {
   # add data whenever the df is updated
   observe({
     df <- df()
-    proxy <- leafletProxy("map") %>%
+    print(df)
+    proxy <<- leafletProxy("map") %>% #####
+    ###m %>% #####
       clearMarkers() %>%
       clearShapes() %>%
       addCityBound()
@@ -89,10 +94,21 @@ function(input, output, session) {
         hideGroup("lines") %>%
         addData(data=spData, color=as.character(row$color)) %>%
         showGroup("lines") %>%
-        showGroup("markers")
+        showGroup("markers") 
     })
+    
   })
   
+  ## take a snapshot
+  observeEvent(input$snap,{
+    ###proxy$mapId <- "proxMap"
+    mapshot(m, file = paste0(getwd(), "/mapPics/prox.png"))
+    print("hello")
+    session$sendCustomMessage(type = 'testmessage',
+                              message = 'Snapshot saved!')
+    }
+  )
+
   # render the UI, adding the correct number of dataDropdowns
   observe({
     output$dataDropdowns <- renderUI({
@@ -121,6 +137,8 @@ function(input, output, session) {
     #   })
     #   do.call(shiny::tagList, modals)
     # })
+   
+
   })
   
   titleWithColor <- function(title, color){
@@ -143,6 +161,8 @@ function(input, output, session) {
     )
   })
   
+  #save snapshot of map
+ 
   # zipsInBounds <- reactive({
   #   if (is.null(input$map_bounds))
   #     return(zipdata[FALSE,])
