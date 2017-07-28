@@ -13,6 +13,19 @@ function(input, output, session) {
 
   ## Interactive Map ###########################################
   m <- leaflet()
+  
+  # the id of the panels
+  nextId <- 2
+  # counter for tracking which module has had its server function called
+  minModuleCalled <- 0
+  
+  # stored values of front end values
+  # df stores the ids, names colors, and other values related to each dataset
+  # modalId is the id of the dataset that we want to display on the advanced features modal
+  features <- reactiveValues(df=data.frame(id=c(1),name=c("Public Schools"),
+                             color=c("blue"), cluster=c(FALSE), stringsAsFactors=FALSE),
+                             modalId=0)
+  
   # Create the map
   output$map <- renderLeaflet({
     m <<- leaflet() %>%
@@ -26,47 +39,79 @@ function(input, output, session) {
       addCityBound()
       
   })
-  ###proxy <- leafletProxy("map") ######
-  ###proxy <- leaflet("map") ######
-  # stored values of front end values
-  features <- reactiveValues(rendered=c(1),names=c("Public Schools"),
-                             colors=c("blue"))
+  
+  checkQuery <- function(){
+    # check query before rendering dropdowns, add data
+    query <- getQueryString()
+    if(length(query) > 0){
+      qdf <- data.frame(id=strsplit(query$id, ",")[[1]],
+                        name=strsplit(query$name, ",")[[1]],
+                        color=paste0('#',strsplit(query$color, ",")[[1]]),
+                        cluster=(strsplit(query$cluster, ",")[[1]]=="TRUE"),
+                        stringsAsFactors=FALSE)
+      print(qdf)
+      features$df <- qdf
+      
+      # adding data
+      proxy <- leafletProxy("map")
+      by(features$df, 1:nrow(features$df), function(row){
+        spData <- data.frame()
+        name <- as.character(row$name)
+        # if data is already downloaded, no need to download again
+        if(name %in% names(downloadedData)){
+          spData <- downloadedData[[name]]
+        }else{
+          link <- as.character(data[name])
+          spData <- geojson_read(link, what="sp")
+          downloadedData[[name]] <<- spData
+        }
+        # add/remove layers in a specific order to have markers/lines on top of polygons
+        proxy %>%
+          hideGroup("markers") %>%
+          hideGroup("lines") %>%
+          addData(data=spData, color=as.character(row$color), cluster=row$cluster) %>%
+          showGroup("lines") %>%
+          showGroup("markers")
+      })
+    }
+  }
+  
   
   # utility function to save values into the reactive features
   saveFeatures <- function(){
-    features$names <- lapply(features$rendered, function(i){
-      input[[paste0('data',i)]]
+    features$df$name <- lapply(features$df$id, function(i){
+      input[[NS(i)('data')]]
     })
-    features$colors <- lapply(features$rendered, function(i){
-      input[[paste0('color',i)]]
+    features$df$color <- lapply(features$df$id, function(i){
+      input[[NS(i)('color')]]
     })
   }
   
   # Increment reactive values used to store how may rows we have rendered
   observeEvent(input$add,{
-    if (max(features$rendered) > 8) return(NULL)
+    if (length(features$df$id) > 8) return(NULL)
     saveFeatures()
-    features$names <- c(features$names, "Public Schools")
-    features$colors <- c(features$colors, "blue")
-    features$rendered <- c(features$rendered, max(features$rendered)+1)
-  })
-  
-  # Remove reactive values
-  observeEvent(input$remove,{
-    if(max(features$rendered) < 2) return(NULL)
-    features$names <- head(features$names, -1)
-    features$colors <- head(features$colors, -1)
-    features$rendered <- head(features$rendered, -1)
+    newRow <- c(id=nextId, name="Public Schools", color="blue", cluster=FALSE)
+    features$df <- rbind(features$df, newRow)
+    nextId <<- nextId + 1
   })
   
   # input data for choices about datasets
   df <- eventReactive(input$update, {
     saveFeatures()
-    out <- lapply(features$rendered,function(i){
-      data.frame(name=as.character(features$names[i]), color=as.character(features$colors[i]))
-    })
-    do.call(rbind,out)
+    updateQueryString(createQueryString())
+    features$df
   })
+  
+  createQueryString <- function(){
+    paste0("?",
+           paste(
+             paste0("id=", paste(features$df$id, collapse=',')),
+             paste0("name=", paste(features$df$name, collapse=',')),
+             paste0("color=", paste(substring(features$df$color,2), collapse=',')),
+             paste0("cluster=", paste(features$df$cluster, collapse=',')),
+          sep="&"))
+  }
   
   # add data whenever the df is updated
   observe({
@@ -75,6 +120,7 @@ function(input, output, session) {
     proxy <<- leafletProxy("map") %>% #####
     ###m %>% #####
       clearMarkers() %>%
+      clearMarkerClusters() %>%
       clearShapes() %>%
       addCityBound()
     # look at datasets that user wants to visualize
@@ -89,10 +135,11 @@ function(input, output, session) {
         spData <- geojson_read(link, what="sp")
         downloadedData[[name]] <<- spData
       }
+      # add/remove layers in a specific order to have markers/lines on top of polygons
       proxy %>%
         hideGroup("markers") %>%
         hideGroup("lines") %>%
-        addData(data=spData, color=as.character(row$color)) %>%
+        addData(data=spData, color=as.character(row$color), cluster=row$cluster) %>%
         showGroup("lines") %>%
         showGroup("markers") 
     })
@@ -109,40 +156,67 @@ function(input, output, session) {
     }
   )
 
+
+  onLoad <- TRUE
+  
+
   # render the UI, adding the correct number of dataDropdowns
   observe({
+    if(onLoad){
+      checkQuery()
+      onLoad <<- FALSE
+    }
     output$dataDropdowns <- renderUI({
-      # create rows of collapsible panels, one per dataset
-      panels <- lapply(features$rendered,function(i){
-        bsCollapsePanel(value = paste0("collapse",i),
-          selectizeInput(paste0("data",i), "Data Set", names(data),
-                         selected = as.character(features$names[i]),
-                         options=list(placeholder='Search for a Data Set')),
-          colourInput(paste0("color",i), "Color", showColour="background",
-                      value=features$colors[i],
-                      palette="limited"),
-          # actionButton(paste0("openModal",i), "", icon=icon("cog")),
-          # bsModal(id=paste0("optionsModal",i), title="More Options", trigger=paste0("openModal",i),
-          #                      uiOutput("modalOutput")),
-          title = HTML(titleWithColor(as.character(features$names[i]), features$colors[i]))
-        )
+      rownum <- 0
+      lastId <- 0
+      # creates a list of collapsible panels, one per dataset
+      panels <- lapply(features$df$id,function(i){
+        rownum <<- rownum + 1
+        lastId <<- i
+        dataSelectPanelUI(id=i, features, rownum)
       })
-      # returns the actual rows of collapse panels in the bsCollapse ui object
-      do.call(bsCollapse, c(panels, open=paste0("collapse",length(features$rendered)), id="collapseGroup"))
+      lapply(features$df$id, function(i){
+        if(i > minModuleCalled){
+          print(paste("new module",i))
+          callModule(dataSelectPanel, i, features, i, session)
+          minModuleCalled <<- i
+        }
+      })
+      # returns the actual rows of collapse panels in the bsCollapse ui object, the last panel is marked as open
+      do.call(bsCollapse, c(panels, open=NS(lastId)("collapse"), id="collapseGroup"))
     })
-    # output$modals <- renderUI({
-    #   modals <- lapply(features$rendered,function(i){
-    #     bsModal(id=paste0("optionsModal",i), title="More Options", trigger=paste0("openModal",i),
-    #             uiOutput("modalOutput"))
-    #   })
-    #   do.call(shiny::tagList, modals)
-    # })
-   
 
   })
   
-  titleWithColor <- function(title, color){
-    return(paste(paste0("<div class='colorbox' style='background: ", color, ";'/>"), title))
+  # boolean value representing whether a there are more than one panel or not
+  # used to show or hide the "remove" button on each panel
+  output$moreThanOnePanel <- reactive({
+    length(features$df$id) > 1
+  })
+  
+  observe({
+    if(features$modalId > 0){
+      output$optionsModalContent <- renderUI({
+        advancedOptionsContentInput(features$modalId)
+      })
+      callModule(advancedOptionsContent, features$modalId, features$modalId)
+    }
+  })
+  
+  advancedOptionsContentInput <- function(id){
+    ns <- NS(id)
+    tags$div(
+      checkboxInput(ns("cluster"), "Cluster Graph (Only for Point Data)")
+      # selectInput(ns("dataParameterInput"), "Data Parameter")
+    )
+  }
+  
+  advancedOptionsContent <- function(input, output, session, modalId){
+    observe({
+      if(!is.null(input$cluster)){
+        features$df[features$df$id==modalId,'cluster'] <- input$cluster
+      }
+    })
   }
   
   ## DATA TAB FUNCTIONS

@@ -1,5 +1,8 @@
+library(shinydashboard)
+
 navbarPage("Analyze Boston Data Explorer", id="nav",
   tabPanel("Interactive map",
+    bsModal("optionsModal", "Advanced Options", "", uiOutput("optionsModalContent")),
     div(class="outer",
       tags$head(
         # Include our custom CSS
@@ -19,7 +22,10 @@ navbarPage("Analyze Boston Data Explorer", id="nav",
                     bsButton("add", "", icon=icon("plus")),
                     bsButton("remove", "", icon=icon("minus")),
                     bsButton("update", "Update Datalayers", style="primary"),
-                    bsButton("snap", "Save picture", style="primary")
+                    bsButton("snap", "Save picture", style="primary"),
+                    # hidden text to keep the output$moreThanOnePanel value bound and updating
+                    div(textOutput("moreThanOnePanel"), style="color:white; height:0px")
+                
       ),
       absolutePanel(id = "share", class = "panel panel-default", fixed = TRUE,
                     draggable = FALSE, top = "auto", right = "auto", left = 10, bottom = 10,
@@ -31,13 +37,8 @@ navbarPage("Analyze Boston Data Explorer", id="nav",
                                   Tweet</a> <link rel="canonical"
   href="/web/tweet-button">'))#,
                     #tags$div(HTML('<iframe src="https://www.facebook.com/plugins/share_button.php?href=https%3A%2F%2Fdevelopers.facebook.com%2Fdocs%2Fplugins%2F&layout=button_count&size=small&mobile_iframe=true&width=88&height=20&appId" width="88" height="20" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowTransparency="true"></iframe>'))
-                    #uiOutput("dataDropdowns"),
-                   # bsButton("add", "", icon=icon("plus")),
-                   # bsButton("remove", "", icon=icon("minus")),
-                   # bsButton("update", "Update Datalayers", style="primary"),
-                   # bsButton("snap", "Save picture", style="primary")
-      ),
-      uiOutput("modals")
+                 
+      )
     )
   ),
 
