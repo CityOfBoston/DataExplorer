@@ -133,8 +133,14 @@ dataSelectPanel <- function(input, output, session, features, panelId, realSessi
   
   # open advanced options and populate modal
   observeEvent(input$openModal, {
-    toggleModal(realSession, "optionsModal")
-    features$modalId <- panelId
+    closeAlert(realSession, "dataNotDownloadedError")
+    if(features$df[features$df$id==panelId,'name'] %in% names(downloadedData)){
+      toggleModal(realSession, "optionsModal")
+      features$modalId <- panelId
+    }else{
+      createAlert(realSession, anchorId="errorAlert", alertId="dataNotDownloadedError",
+                  style="warning", content="Please update datalayers before checking advanced options!")
+    }
   })
 }
 

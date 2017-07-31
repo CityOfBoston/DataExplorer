@@ -1,5 +1,3 @@
-library(shinydashboard)
-
 navbarPage("Analyze Boston Data Explorer", id="nav",
   tabPanel("Interactive map",
     bsModal("optionsModal", "Advanced Options", "", uiOutput("optionsModalContent")),
@@ -18,6 +16,7 @@ navbarPage("Analyze Boston Data Explorer", id="nav",
                     draggable = FALSE, top = 80, left = "auto", right = 20, bottom = "auto",
                     width = 330, height = "auto",
                     h2("Data Explorer"),
+                    bsAlert("errorAlert"),
                     uiOutput("dataDropdowns"),
                     bsButton("add", "", icon=icon("plus")),
                     bsButton("update", "Update Datalayers", style="primary"),
@@ -34,9 +33,6 @@ navbarPage("Analyze Boston Data Explorer", id="nav",
                       column(4, HTML(twitterHtml), style='padding:5px;'),
                       column(4, HTML(pinterestHtml), style='padding:5px;')
                     )
-                    # tags$div(HTML(facebookHtml)),
-                    # tags$div(HTML(twitterHtml)),
-                    # tags$div(HTML(pinterestHtml))
       )
     )
   ),

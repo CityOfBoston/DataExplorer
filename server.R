@@ -118,7 +118,12 @@ function(input, output, session) {
   # add data whenever the df is updated
   observe({
     df <- df()
-    print(df)
+    closeAlert(session, alertId="emptyDataSetError")
+    if("" %in% df$name){
+      createAlert(session, anchorId="errorAlert", alertId="emptyDataSetError",
+                  style="warning", content="Please choose a data set!")
+      return()
+    }
     proxy <<- leafletProxy("map") %>% #####
     ###m %>% #####
       clearMarkers() %>%
@@ -157,10 +162,9 @@ function(input, output, session) {
                               message = 'Snapshot saved!')
     }
   )
-
-
-  onLoad <- TRUE
   
+  # variable used for on load one time actions
+  onLoad <- TRUE
 
   # render the UI, adding the correct number of dataDropdowns
   observe({
@@ -196,6 +200,7 @@ function(input, output, session) {
     length(features$df$id) > 1
   })
   
+  # renders the modal based on which data set is selected
   observe({
     if(features$modalId > 0){
       output$optionsModalContent <- renderUI({
@@ -205,6 +210,7 @@ function(input, output, session) {
     }
   })
   
+  # Shiny module for the advanced options modal
   advancedOptionsContentInput <- function(id){
     ns <- NS(id)
     dataName <- as.character(features$df[features$df$id==id,'name'])
@@ -212,15 +218,21 @@ function(input, output, session) {
     parameter <- as.character(features$df[features$df$id==id,'parameter'])
     tags$div(
       h2(dataName),
-      checkboxInput(ns("cluster"), "Cluster Graph (Only for Point Data)", value=cluster),
+      p("Here, you can select from some advanced features for the Data Explorer! Note that some of these functions are experimental, and may not work as expected unless utilized correctly. Feel free to try these tools out, and ", strong("if anything breaks, just refresh."), " Enjoy!"),
+      tags$hr(),
+      checkboxInput(ns("cluster"), "Cluster Data", value=cluster),
+      p("For data sets with a large number of point data, you can cluster the data so that a group of points is represented as one.", em("Note that this only functions on point data and will not affect line or polygon data at all.")),
+      tags$hr(),
       selectizeInput(ns("dataParameter"), "Data Parameter",
                   c("",as.character(names(downloadedData[[dataName]]))),
                   selected=parameter,
                   options = list(placeholder = 'Please select an option below')
-      )
+      ),
+      p("Public data sets often have lots of interesting parameters that aren't directly related to geography or location. With this feature, you can visualize data based on one of these parameters. Choose from one of the parameters above to visualize that parameter across the geographical data already presented. For point data, the radius of each point will reflect the parameter chosen. For polygon data, the color of each section will reflect the parameter chosen. ", em("Please only select numerical parameters!"), " Choosing non-numerical parameters may present you with useless data or may even cause your website to crash. As always, just refresh if anything goes wrong. If you are curious what kinds of parameters the data set has, check out the data viewer tab at the top of the main website!")
     )
   }
   
+  # server functions for the above Shiny module
   advancedOptionsContent <- function(input, output, session, modalId){
     observe({
       if(!is.null(input$cluster)){
