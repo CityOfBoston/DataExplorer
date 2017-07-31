@@ -27,15 +27,12 @@ navbarPage("Analyze Boston Data Explorer", id="nav",
                 
       ),
       absolutePanel(id = "share", class = "panel panel-default", fixed = TRUE,
-                    draggable = FALSE, top = "auto", right = "auto", left = 10, bottom = 10,
+                    draggable = FALSE, top = "auto", right = "auto", left = 5, bottom = 5,
                     width = "auto", height = "auto",
                     h5("Share"),
-                    tags$div(HTML('<iframe src="https://www.facebook.com/plugins/share_button.php?href=http%3A%2F%2F127.0.0.1%3A6342%2F%3Fid%3D1%2C2%26name%3DPublic%20Schools%2CNon%20Public%20Schools%26color%3D0000FF%2C008B00%26cluster%3DFALSE%2CFALSE&layout=button_count&size=small&mobile_iframe=true&width=69&height=20&appId" width="69" height="20" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowTransparency="true"></iframe>')),
-                    tags$div(HTML('<a class="twitter-share-button"
-  href="https://twitter.com/intent/tweet"
-                                  data-size="large">
-                                  Tweet</a> <link rel="canonical"
-  href="/web/tweet-button">'))#,
+                    tags$div(HTML('<iframe src="https://www.facebook.com/plugins/share_button.php?href=https%3A%2F%2Fdevelopers.facebook.com%2Fdocs%2Fplugins%2F&layout=button&size=small&mobile_iframe=true&width=59&height=20&appId" width="59" height="20" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowTransparency="true"></iframe>')),
+                    tags$div(HTML('<a href="https://twitter.com/share" class="twitter-share-button" data-show-count="false">Tweet</a><script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>')),
+                    tags$div(HTML('<a data-pin-do="buttonBookmark" data-pin-save="true" href="https://www.pinterest.com/pin/create/button/"></a> <script async defer src="//assets.pinterest.com/js/pinit.js"></script>'))#,
                     
                  
       )
