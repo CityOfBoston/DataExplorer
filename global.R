@@ -146,3 +146,7 @@ titleWithColor <- function(title, color){
   return(paste(paste0("<div class='colorbox' style='background: ", color, ";'/>"), title))
 }
 
+# UI Elements
+facebookHtml <- '<iframe src="https://www.facebook.com/plugins/share_button.php?href=https%3A%2F%2Fdevelopers.facebook.com%2Fdocs%2Fplugins%2F&layout=button&size=small&mobile_iframe=true&width=65&height=20&appId" width="65" height="20" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowTransparency="true"></iframe>'
+twitterHtml <- '<a href="https://twitter.com/share" class="twitter-share-button" data-show-count="false">Tweet</a><script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>'
+pinterestHtml <- '<a data-pin-do="buttonBookmark" data-pin-save="true" href="https://www.pinterest.com/pin/create/button/" width="65"></a> <script async defer src="//assets.pinterest.com/js/pinit.js"></script>'
