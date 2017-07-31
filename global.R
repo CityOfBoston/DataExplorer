@@ -31,7 +31,15 @@ maxRadius <- 500
 addData <- function(leaflet, data, color="blue", cluster=FALSE, parameter=""){
   slots <- slotNames(data)
   if("polygons" %in% slots){
-    leaflet %>% addPolygons(data=data, color=color, weight=2, label=getLabel(data),group="polygons")
+    if(parameter == ""){
+      leaflet %>% addPolygons(data=data, color=color, weight=2, label=getLabel(data),group="polygons")
+    }else{
+      pal <- colorNumeric(c("white", color), domain = data[[parameter]])
+      leaflet %>% addPolygons(data=data, color=color, weight=2, label=getLabel(data),group="polygons",
+                              popup=paste(paste0("<b>",parameter,":</b>"), data[[parameter]]),
+                              fillColor=pal(data[[parameter]]))
+    }
+    
   }else if("lines" %in% slots){
     addPolylines(leaflet, data=data, color=color, weight=2, group="lines")
   }else if(cluster){
