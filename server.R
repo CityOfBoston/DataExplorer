@@ -22,8 +22,8 @@ function(input, output, session) {
   # stored values of front end values
   # df stores the ids, names colors, and other values related to each dataset
   # modalId is the id of the dataset that we want to display on the advanced features modal
-  features <- reactiveValues(df=data.frame(id=c(1),name=c("Public Schools"),
-                             color=c("blue"), cluster=c(FALSE), stringsAsFactors=FALSE),
+  features <- reactiveValues(df=data.frame(id=c(1),name=c(""),
+                             color=c("blue"), cluster=c(FALSE), parameter=c(""), stringsAsFactors=FALSE),
                              modalId=0)
   
   # Create the map
@@ -48,6 +48,7 @@ function(input, output, session) {
                         name=strsplit(query$name, ",")[[1]],
                         color=paste0('#',strsplit(query$color, ",")[[1]]),
                         cluster=(strsplit(query$cluster, ",")[[1]]=="TRUE"),
+                        parameter=strsplit(query$parameter, ",")[[1]],
                         stringsAsFactors=FALSE)
       print(qdf)
       features$df <- qdf
@@ -69,7 +70,7 @@ function(input, output, session) {
         proxy %>%
           hideGroup("markers") %>%
           hideGroup("lines") %>%
-          addData(data=spData, color=as.character(row$color), cluster=row$cluster) %>%
+          addData(data=spData, color=as.character(row$color), cluster=row$cluster, parameter=row$parameter) %>%
           showGroup("lines") %>%
           showGroup("markers")
       })
@@ -91,7 +92,7 @@ function(input, output, session) {
   observeEvent(input$add,{
     if (length(features$df$id) > 8) return(NULL)
     saveFeatures()
-    newRow <- c(id=nextId, name="Public Schools", color="blue", cluster=FALSE)
+    newRow <- c(id=nextId, name="", color="blue", cluster=FALSE, parameter="")
     features$df <- rbind(features$df, newRow)
     nextId <<- nextId + 1
   })
@@ -99,7 +100,7 @@ function(input, output, session) {
   # input data for choices about datasets
   df <- eventReactive(input$update, {
     saveFeatures()
-    updateQueryString(createQueryString())
+    # updateQueryString(createQueryString())
     features$df
   })
   
@@ -110,6 +111,7 @@ function(input, output, session) {
              paste0("name=", paste(features$df$name, collapse=',')),
              paste0("color=", paste(substring(features$df$color,2), collapse=',')),
              paste0("cluster=", paste(features$df$cluster, collapse=',')),
+             paste0("parameter=", paste(features$df$parameter, collapse=',')),
           sep="&"))
   }
   
@@ -139,7 +141,7 @@ function(input, output, session) {
       proxy %>%
         hideGroup("markers") %>%
         hideGroup("lines") %>%
-        addData(data=spData, color=as.character(row$color), cluster=row$cluster) %>%
+        addData(data=spData, color=as.character(row$color), cluster=row$cluster, parameter=row$parameter) %>%
         showGroup("lines") %>%
         showGroup("markers") 
     })
@@ -205,9 +207,17 @@ function(input, output, session) {
   
   advancedOptionsContentInput <- function(id){
     ns <- NS(id)
+    dataName <- as.character(features$df[features$df$id==id,'name'])
+    cluster <- as.logical(features$df[features$df$id==id,'cluster'])
+    parameter <- as.character(features$df[features$df$id==id,'parameter'])
     tags$div(
-      checkboxInput(ns("cluster"), "Cluster Graph (Only for Point Data)")
-      # selectInput(ns("dataParameterInput"), "Data Parameter")
+      h2(dataName),
+      checkboxInput(ns("cluster"), "Cluster Graph (Only for Point Data)", value=cluster),
+      selectizeInput(ns("dataParameter"), "Data Parameter",
+                  c("",as.character(names(downloadedData[[dataName]]))),
+                  selected=parameter,
+                  options = list(placeholder = 'Please select an option below')
+      )
     )
   }
   
@@ -215,6 +225,12 @@ function(input, output, session) {
     observe({
       if(!is.null(input$cluster)){
         features$df[features$df$id==modalId,'cluster'] <- input$cluster
+      }
+    })
+    
+    observe({
+      if(!is.null(input$dataParameter)){
+        features$df[features$df$id==modalId,'parameter'] <- input$dataParameter
       }
     })
   }
@@ -234,145 +250,4 @@ function(input, output, session) {
                       choices = df()$name
     )
   })
-  
-  #save snapshot of map
- 
-  # zipsInBounds <- reactive({
-  #   if (is.null(input$map_bounds))
-  #     return(zipdata[FALSE,])
-  #   bounds <- input$map_bounds
-  #   latRng <- range(bounds$north, bounds$south)
-  #   lngRng <- range(bounds$east, bounds$west)
-  # 
-  #   subset(zipdata,
-  #     latitude >= latRng[1] & latitude <= latRng[2] &
-  #       longitude >= lngRng[1] & longitude <= lngRng[2])
-  # })
-
-  # # Precalculate the breaks we'll need for the two histograms
-  # centileBreaks <- hist(plot = FALSE, allzips$centile, breaks = 20)$breaks
-  # 
-  # output$histCentile <- renderPlot({
-  #   # If no zipcodes are in view, don't plot
-  #   if (nrow(zipsInBounds()) == 0)
-  #     return(NULL)
-  # 
-  #   hist(zipsInBounds()$centile,
-  #     breaks = centileBreaks,
-  #     main = "SuperZIP score (visible zips)",
-  #     xlab = "Percentile",
-  #     xlim = range(allzips$centile),
-  #     col = '#00DD00',
-  #     border = 'white')
-  # })
-  # 
-  # output$scatterCollegeIncome <- renderPlot({
-  #   # If no zipcodes are in view, don't plot
-  #   if (nrow(zipsInBounds()) == 0)
-  #     return(NULL)
-  # 
-  #   print(xyplot(income ~ college, data = zipsInBounds(), xlim = range(allzips$college), ylim = range(allzips$income)))
-  # })
-
-  # This observer is responsible for maintaining the circles and legend,
-  # according to the variables the user has chosen to map to color and size.
-  # observe({
-  #   colorBy <- input$color
-  #   sizeBy <- input$size
-  # 
-  #   if (colorBy == "superzip") {
-  #     # Color and palette are treated specially in the "superzip" case, because
-  #     # the values are categorical instead of continuous.
-  #     colorData <- ifelse(zipdata$centile >= (100 - input$threshold), "yes", "no")
-  #     pal <- colorFactor("viridis", colorData)
-  #   } else {
-  #     colorData <- zipdata[[colorBy]]
-  #     pal <- colorBin("viridis", colorData, 7, pretty = FALSE)
-  #   }
-  # 
-  #   if (sizeBy == "superzip") {
-  #     # Radius is treated specially in the "superzip" case.
-  #     radius <- ifelse(zipdata$centile >= (100 - input$threshold), 30000, 3000)
-  #   } else {
-  #     radius <- zipdata[[sizeBy]] / max(zipdata[[sizeBy]]) * 30000
-  #   }
-  # 
-  #   leafletProxy("map", data = zipdata) %>%
-  #     clearShapes() %>%
-  #     addCircles(~longitude, ~latitude, radius=radius, layerId=~zipcode,
-  #       stroke=FALSE, fillOpacity=0.4, fillColor=pal(colorData)) %>%
-  #     addLegend("bottomleft", pal=pal, values=colorData, title=colorBy,
-  #       layerId="colorLegend")
-  # })
-  # 
-  # # Show a popup at the given location
-  # showZipcodePopup <- function(zipcode, lat, lng) {
-  #   selectedZip <- allzips[allzips$zipcode == zipcode,]
-  #   content <- as.character(tagList(
-  #     tags$h4("Score:", as.integer(selectedZip$centile)),
-  #     tags$strong(HTML(sprintf("%s, %s %s",
-  #       selectedZip$city.x, selectedZip$state.x, selectedZip$zipcode
-  #     ))), tags$br(),
-  #     sprintf("Median household income: %s", dollar(selectedZip$income * 1000)), tags$br(),
-  #     sprintf("Percent of adults with BA: %s%%", as.integer(selectedZip$college)), tags$br(),
-  #     sprintf("Adult population: %s", selectedZip$adultpop)
-  #   ))
-  #   leafletProxy("map") %>% addPopups(lng, lat, content, layerId = zipcode)
-  # }
-  # 
-  # # When map is clicked, show a popup with city info
-  # observe({
-  #   leafletProxy("map") %>% clearPopups()
-  #   event <- input$map_shape_click
-  #   if (is.null(event))
-  #     return()
-  # 
-  #   isolate({
-  #     showZipcodePopup(event$id, event$lat, event$lng)
-  #   })
-  # })
-
-
-  ## Data Explorer ###########################################
-# 
-#   observe({
-#     cities <- if (is.null(input$states)) character(0) else {
-#       filter(cleantable, State %in% input$states) %>%
-#         `$`('City') %>%
-#         unique() %>%
-#         sort()
-#     }
-#     stillSelected <- isolate(input$cities[input$cities %in% cities])
-#     updateSelectInput(session, "cities", choices = cities,
-#       selected = stillSelected)
-#   })
-# 
-#   observe({
-#     zipcodes <- if (is.null(input$states)) character(0) else {
-#       cleantable %>%
-#         filter(State %in% input$states,
-#           is.null(input$cities) | City %in% input$cities) %>%
-#         `$`('Zipcode') %>%
-#         unique() %>%
-#         sort()
-#     }
-#     stillSelected <- isolate(input$zipcodes[input$zipcodes %in% zipcodes])
-#     updateSelectInput(session, "zipcodes", choices = zipcodes,
-#       selected = stillSelected)
-#   })
-# 
-#   observe({
-#     if (is.null(input$goto))
-#       return()
-#     isolate({
-#       map <- leafletProxy("map")
-#       map %>% clearPopups()
-#       dist <- 0.5
-#       zip <- input$goto$zip
-#       lat <- input$goto$lat
-#       lng <- input$goto$lng
-#       showZipcodePopup(zip, lat, lng)
-#       map %>% fitBounds(lng - dist, lat - dist, lng + dist, lat + dist)
-#     })
-#   })
 }

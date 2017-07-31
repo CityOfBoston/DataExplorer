@@ -3,6 +3,7 @@ library(rjson)
 library(geojsonio)
 library(shinyBS)
 library(DT)
+library(shinyjs)
 
 
 # the geospatial datasets from analyze boston (maxes at 100 data sets for now, can remove if desired)
@@ -23,8 +24,11 @@ boundJson <- geojson_read(bostonLink, what = "sp")
 # reactive values list of cached data
 downloadedData <- reactiveValues()
 
+minRadius <- 100
+maxRadius <- 500
+
 # smartly add the correct kind of data to the map
-addData <- function(leaflet, data, color="blue", cluster=FALSE){
+addData <- function(leaflet, data, color="blue", cluster=FALSE, parameter=""){
   slots <- slotNames(data)
   if("polygons" %in% slots){
     leaflet %>% addPolygons(data=data, color=color, weight=2, label=getLabel(data),group="polygons")
@@ -34,10 +38,23 @@ addData <- function(leaflet, data, color="blue", cluster=FALSE){
     addCircleMarkers(leaflet, data=data, fillOpacity=0.6, color=color,
                      label=getLabel(data), weight=2, clusterOptions=markerClusterOptions(),
                      group="markers")
+  }else if(parameter != ""){
+    addCircles(leaflet, data=data, fillOpacity=0.6, color=color,
+               label = getLabel(data), weight=2, radius=smartScale(as.numeric(data[[parameter]])),
+               popup=paste(paste0("<b>",parameter,":</b>"), data[[parameter]]), group="markers")
   }else{
     addCircles(leaflet, data=data, fillOpacity=0.6, color=color,
-                     label = getLabel(data), weight=2, radius=80, group="markers")
+                     label = getLabel(data), weight=2, radius=minRadius, group="markers")
   }
+}
+
+# scales a parameter to proper radii bounds so that the data shows cleanly on the map
+smartScale <- function(data){
+  newData <- data
+  newData[is.na(newData)] <- 0
+  max <- max(newData)
+  newData <- newData / (max) * (maxRadius)
+  newData <- newData + minRadius
 }
 
 # adds the boston city bound to the map
@@ -60,15 +77,16 @@ getLabel <- function(data){
 dataSelectPanelUI <- function(id, features, rownum){
   ns <- NS(id)
   bsCollapsePanel(value = ns("collapse"),
-                  selectizeInput(ns("data"), "Data Set", names(data),
-                                 selected = as.character(features$df$name[rownum]),
+                  selectizeInput(ns("data"), "Data Set", c("",names(data)),
+                                 selected = features$df$name[rownum],
                                  options=list(placeholder='Search for a Data Set')),
                   fluidRow(
                     column(10, colourInput(ns("color"), "Color", showColour="background",
                                                  value=features$df$color[rownum],
                                                  palette="limited")),
-                    column(2, actionButton(ns("openModal"), "", icon=icon("cog")), style="margin-top: 25px;
-                           margin-left:-20px;")
+                    column(2, actionButton(ns("openModal"), "", icon=icon("cog")),
+                           style="margin-top: 25px;margin-left:-20px;"
+                    )
                   ),
                   title = tags$div(HTML(titleWithColor(features$df$name[rownum], features$df$color[rownum])),
                                    conditionalPanel('output.moreThanOnePanel',
@@ -94,6 +112,7 @@ dataSelectPanel <- function(input, output, session, features, panelId, realSessi
   observe({
     if(!is.null(input$data) && input$data != ''){
       features$df[features$df$id==panelId,'name'] <- input$data
+      # features$df[features$df$id==panelId,'parameter'] <- ""
     }
   })
   
@@ -113,6 +132,9 @@ dataSelectPanel <- function(input, output, session, features, panelId, realSessi
 
 # helper function to create titles with a colored label
 titleWithColor <- function(title, color){
+  if(title == ""){
+    title <- "Search for a Data Set:"
+  }
   return(paste(paste0("<div class='colorbox' style='background: ", color, ";'/>"), title))
 }
 
