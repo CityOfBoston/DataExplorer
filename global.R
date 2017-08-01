@@ -17,9 +17,14 @@ titles <- lapply(datasets, function(x){
 urls <- lapply(datasets, function(x){
   return (x$resources[[1]]$url)
 })
+descriptions <- lapply(datasets, function(x){
+  return(x$notes)
+})
 data <- setNames(urls,titles)
 data <- data[order(names(data))]
 boundJson <- geojson_read(bostonLink, what = "sp")
+
+allData <- data.frame(name=as.character(titles), url=as.character(urls), description=as.character(descriptions), stringsAsFactors=FALSE)
 
 # reactive values list of cached data
 downloadedData <- reactiveValues()
@@ -117,15 +122,17 @@ dataSelectPanel <- function(input, output, session, features, panelId, realSessi
   })
   
   # live updating the data set name
-  observe({
+  observeEvent(input$data, {
     if(!is.null(input$data) && input$data != ''){
-      features$df[features$df$id==panelId,'name'] <- input$data
-      # features$df[features$df$id==panelId,'parameter'] <- ""
+      if(input$data != features$df[features$df$id==panelId,'name']){
+        features$df[features$df$id==panelId,'name'] <- input$data
+        features$df[features$df$id==panelId,'parameter'] <- ""
+      }
     }
   })
   
   # live updating the data color
-  observe({
+  observeEvent(input$color, {
     if(!is.null(input$color) && input$color != ''){
       features$df[features$df$id==panelId, 'color'] <- input$color
     }

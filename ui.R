@@ -1,6 +1,6 @@
 navbarPage("Analyze Boston Data Explorer", id="nav",
   tabPanel("Interactive map",
-    bsModal("optionsModal", "Advanced Options", "", uiOutput("optionsModalContent")),
+    bsModal("optionsModal", "Options", "", uiOutput("optionsModalContent"), size="large"),
     div(class="outer",
       tags$head(
         # Include our custom CSS

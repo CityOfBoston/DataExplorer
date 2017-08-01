@@ -216,31 +216,35 @@ function(input, output, session) {
     dataName <- as.character(features$df[features$df$id==id,'name'])
     cluster <- as.logical(features$df[features$df$id==id,'cluster'])
     parameter <- as.character(features$df[features$df$id==id,'parameter'])
+    description <- as.character(allData[allData$name==dataName,'description'])
     tags$div(
-      h2(dataName),
-      p("Here, you can select from some advanced features for the Data Explorer! Note that some of these functions are experimental, and may not work as expected unless utilized correctly. Feel free to try these tools out, and ", strong("if anything breaks, just refresh."), " Enjoy!"),
-      tags$hr(),
+      h3(dataName),
+      p(description),
+      hr(),
+      h4("Advanced Features*"),
       checkboxInput(ns("cluster"), "Cluster Data", value=cluster),
       p("For data sets with a large number of point data, you can cluster the data so that a group of points is represented as one.", em("Note that this only functions on point data and will not affect line or polygon data at all.")),
-      tags$hr(),
+      hr(),
       selectizeInput(ns("dataParameter"), "Data Parameter",
                   c("",as.character(names(downloadedData[[dataName]]))),
                   selected=parameter,
                   options = list(placeholder = 'Please select an option below')
       ),
-      p("Public data sets often have lots of interesting parameters that aren't directly related to geography or location. With this feature, you can visualize data based on one of these parameters. Choose from one of the parameters above to visualize that parameter across the geographical data already presented. For point data, the radius of each point will reflect the parameter chosen. For polygon data, the color of each section will reflect the parameter chosen. ", em("Please only select numerical parameters!"), " Choosing non-numerical parameters may present you with useless data or may even cause your website to crash. As always, just refresh if anything goes wrong. If you are curious what kinds of parameters the data set has, check out the data viewer tab at the top of the main website!")
+      p("Public data sets often have lots of interesting parameters that aren't directly related to geography or location. With this feature, you can visualize data based on one of these parameters. Choose from one of the parameters above to visualize that parameter across the geographical data already presented. For point data, the radius of each point will reflect the parameter chosen. For polygon data, the color of each section will reflect the parameter chosen. ", em("Please only select numerical parameters!"), " Choosing non-numerical parameters may present you with useless data or may even cause your website to crash. As always, just refresh if anything goes wrong. If you are curious what kinds of parameters the data set has, check out the data viewer tab at the top of the main website!"),
+      hr(),
+      p("*Note that some of these functions are experimental, and may not work as expected unless utilized correctly. Feel free to try these tools out, and ", strong("if anything breaks, just refresh."), " Enjoy!")
     )
   }
   
   # server functions for the above Shiny module
   advancedOptionsContent <- function(input, output, session, modalId){
-    observe({
+    observeEvent(input$cluster, {
       if(!is.null(input$cluster)){
         features$df[features$df$id==modalId,'cluster'] <- input$cluster
       }
     })
     
-    observe({
+    observeEvent(input$dataParameter, {
       if(!is.null(input$dataParameter)){
         features$df[features$df$id==modalId,'parameter'] <- input$dataParameter
       }
