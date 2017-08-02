@@ -266,4 +266,8 @@ function(input, output, session) {
                       choices = df()$name
     )
   })
+  
+  ## SHOWCASE FUNCTIONS
+  
+  
 }

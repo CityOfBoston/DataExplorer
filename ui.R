@@ -45,5 +45,33 @@ navbarPage("Analyze Boston Data Explorer", id="nav",
     ),
     hr(),
     DT::dataTableOutput("datatable")
+  ),
+  
+  ########## SHOWCASES ############
+  tabPanel("Data Showcases",
+    fluidRow(
+      column(6,
+             # see this for docs: https://ebailey78.github.io/shinyBS/docs/Collapses.html#bsCollapse
+             bsCollapse(
+                 bsCollapsePanel("Map 1",
+                               div("insert stuff here!")
+                 ),
+                 bsCollapsePanel("Map 3",
+                               div("insert stuff here!")
+                 )
+             )
+            
+      ),
+      column(6,
+             bsCollapse(
+               bsCollapsePanel("Map 2",
+                               div("insert stuff here!")
+               ),
+               bsCollapsePanel("Map 4",
+                               div("insert stuff here!")
+               )
+             )
+      )
+    )
   )
 )

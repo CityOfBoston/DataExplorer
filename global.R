@@ -127,6 +127,7 @@ dataSelectPanel <- function(input, output, session, features, panelId, realSessi
       if(input$data != features$df[features$df$id==panelId,'name']){
         features$df[features$df$id==panelId,'name'] <- input$data
         features$df[features$df$id==panelId,'parameter'] <- ""
+        features$df[features$df$id==panelId,'cluster'] <- FALSE
       }
     }
   })
