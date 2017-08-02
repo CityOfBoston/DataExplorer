@@ -268,6 +268,54 @@ function(input, output, session) {
   })
   
   ## SHOWCASE FUNCTIONS
+  lightLink <- "https://data.boston.gov/dataset/52b0fdad-4037-460c-9c92-290f5774ab2b/resource/c2fcc1e3-c38f-44ad-a0cf-e5ea2a6585b5/download/streetlight-locations.csv"
+  neighborhoodLink <- "http://bostonopendata-boston.opendata.arcgis.com/datasets/3525b0ee6e6b427f9aab5d0a1d0a1a28_0.geojson"
+  
+  lightFile <- "./data/light.rds"
+  lightData <- NULL
   
   
+  if(file.exists(lightFile)){
+    lightData <- readRDS(lightFile)
+  }else{
+    lightData <- read.csv(lightLink)
+    saveRDS(lightData, lightFile)
+  }
+  
+  neighborhoodJson <- geojson_read(neighborhoodLink, what="sp")
+  
+  # make sure there are no N/A entries in data
+  complete <- lightData[complete.cases(lightData),]
+  
+  sp::coordinates(complete) <- ~Long+Lat
+  sp::proj4string(complete) <- sp::proj4string(neighborhoodJson)
+  pts.poly <- point.in.poly(complete, neighborhoodJson)
+  numLightsInNeighborhood <- tapply(pts.poly@data$OBJECTID, pts.poly@data$Name, FUN=length)
+  
+  neighborhoodJson@data$totalLights <- unname(numLightsInNeighborhood[neighborhoodJson@data$Name])
+  
+  neighborhoodJson@data$lightDensity <- neighborhoodJson@data$totalLights/neighborhoodJson@data$SqMiles
+  
+  pal <- colorNumeric(c("#0c0b2d", "white"), domain = neighborhoodJson@data$lightDensity)
+  
+  output$lightMap <- renderLeaflet({
+    leaflet() %>%
+      addProviderTiles(providers$CartoDB.DarkMatterNoLabels) %>%
+      # centering the view on a specific location (Boston)
+      setView(lng = -71.0589, lat = 42.3, zoom = 12) %>%
+      # the legend for the shading of the zones
+      addLegend("bottomright", pal = pal, values = neighborhoodJson@data$lightDensity,
+                title = "Light Density In Neighborhoods",
+                opacity = 1) %>%
+      # adding the zones
+      addPolygons(data = neighborhoodJson, weight = 0,
+                  color = "#ffd6d6", popup = ~paste("<b>", Name, "</b><br/>Street Lights: ",
+                                                          totalLights, "<br/>Area: ",
+                                                          SqMiles, " square miles<br/>Light Density: ",
+                                                          lightDensity), group = "zones",
+                  fillColor = ~pal(lightDensity),
+                  fillOpacity = 0.95,
+                  label = ~Name
+      )
+  })
 }

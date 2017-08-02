@@ -67,8 +67,8 @@ navbarPage("Analyze Boston Data Explorer", id="nav",
                bsCollapsePanel("Map 2",
                                div("insert stuff here!")
                ),
-               bsCollapsePanel("Map 4",
-                               div("insert stuff here!")
+               bsCollapsePanel("Light Pollution in Boston",
+                               leafletOutput("lightMap", height="800")
                )
              )
       )
