@@ -1,6 +1,6 @@
 library(RColorBrewer)
 library(colourpicker)
-library(mapview)
+library(spatialEco)
 
 # # Leaflet bindings are a bit slow; for now we'll just sample to compensate
 # set.seed(100)
@@ -28,6 +28,7 @@ shinyServer(function(input, output, session) {
   
   # Create the map
   output$map <- renderLeaflet({
+    features$urltext <- paste0('http://', session$clientData$url_hostname,':', session$clientData$url_port)
     m <<- leaflet() %>%
       # the styling of the map itself
       addProviderTiles(
@@ -38,6 +39,7 @@ shinyServer(function(input, output, session) {
       setView(lng = -71.0589, lat = 42.31, zoom = 12) %>%
       addCityBound()
       
+      
   })
 
   checkQuery <- function(){
@@ -45,16 +47,17 @@ shinyServer(function(input, output, session) {
     query <- getQueryString()
     print(query)
     if(length(query) > 0){
-      qdf <- data.frame(id=strsplit(query$id, ",")[[1]],
-                        name=strsplit(query$name, ",")[[1]],
-                        color=paste0('#',strsplit(query$color, ",")[[1]]),
-                        cluster=(strsplit(query$cluster, ",")[[1]]=="TRUE"),
-                        parameter=strsplit(query$parameter, ",")[[1]],
+      qdf <- data.frame(id=strsplit(query$id, ";")[[1]],
+                        name=strsplit(query$name, ";")[[1]],
+                        color=paste0('#',strsplit(query$color, ";")[[1]]),
+                        cluster=(strsplit(query$cluster, ";")[[1]]=="TRUE"),
+                        parameter=strsplit(query$parameter, ";")[[1]],
                         stringsAsFactors=FALSE)
+      qdf$parameter[qdf$parameter=='none'] <- ''
       print(qdf)
       features$df <- qdf
-      features$urltext <- paste0('http://', session$clientData$url_hostname,':', session$clientData$url_port)
       # adding data
+      print(paste( 'pre update', features$urltext))
       proxy <- leafletProxy("map")
       by(features$df, 1:nrow(features$df), function(row){
         spData <- data.frame()
@@ -104,17 +107,13 @@ shinyServer(function(input, output, session) {
     saveFeatures()
     updateQueryString(createQueryString())
     features$urltext <- paste0('http://', session$clientData$url_hostname,':', session$clientData$url_port, '/', createQueryString())
-    #features$urltext <- URLencode(features$urltext)
-    #features$urltext<-gsub(" ","&",features$urltext)
     print(features$urltext)
     print(URLencode(features$urltext, reserved = TRUE, repeated = FALSE))
     features$df
   })
-  #<script asyn src="//platform.twitter.com/widgets.js" charset="utf-8"></script>')),
   observe({
     print(features$urltext)
     print(session$clientData$url_port)
-    #features$urltext<-"https://www.google.com/maps/"
     output$sharables <- renderUI({
       tags$div(
         tags$div(HTML(paste( '<div id="fb-root"></div><script>(function(d, s, id) {
@@ -127,32 +126,38 @@ shinyServer(function(input, output, session) {
                        data-layout="button" data-size="small" data-mobile-iframe="true"><a class="fb-xfbml-parse-ignore" target="_blank"
         
         href="https://www.facebook.com/sharer/sharer.php?u=',URLencode(features$urltext, reserved = TRUE, repeated = FALSE),'&amp;src=sdkpreparse">Share</a></div>'))),
-        tags$div(HTML(paste0('<a href="https://twitter.com/share" data-text="Check out this map I made with Analyze Boston!" data-url=', gsub(" ","&",features$urltext),' class="twitter-share-button" data-show-count="false">
+        tags$div(HTML(paste0('<a href="https://twitter.com/share" data-text="Check out this map I made with Analyze Boston!" data-url=', gsub(" ","+",features$urltext),' class="twitter-share-button" data-show-count="false">
           Tweet</a><script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>'))))
         #tags$div(HTML('<a data-pin-do="buttonBookmark" data-pin-save="true" href="https://www.pinterest.com/pin/create/button/" data-pin-url="https://www.google.com/maps">
         #              </a> <script async defer src="//assets.pinterest.com/js/pinit.js"></script>')))
     }
     )
     runjs("twttr.widgets.load()")
-    runjs("twttr.widgets.load()")
   })
   
   
   createQueryString <- function(){
+    formattedParams <- features$df$parameter
+    formattedParams[formattedParams == ''] <- "none"
     paste0("?",
            paste(
-             paste0("id=", paste(features$df$id, collapse=',')),
-             paste0("name=", paste(features$df$name, collapse=',')),
-             paste0("color=", paste(substring(features$df$color,2), collapse=',')),
-             paste0("cluster=", paste(features$df$cluster, collapse=',')),
-             paste0("parameter=", paste(features$df$parameter, collapse=',')),
+             paste0("id=", paste(features$df$id, collapse=';')),
+             paste0("name=", paste(features$df$name, collapse=';')),
+             paste0("color=", paste(substring(features$df$color,2), collapse=';')),
+             paste0("cluster=", paste(features$df$cluster, collapse=';')),
+             paste0("parameter=", paste(formattedParams, collapse=';')),
           sep="&"))
   }
   
   # add data whenever the df is updated
   observe({
     df <- df()
-    print(df)
+    closeAlert(session, alertId="emptyDataSetError")
+    if("" %in% df$name){
+      createAlert(session, anchorId="errorAlert", alertId="emptyDataSetError",
+                  style="warning", content="Please choose a data set!")
+      return()
+    }
     proxy <<- leafletProxy("map") %>% #####
     ###m %>% #####
       clearMarkers() %>%
@@ -182,19 +187,8 @@ shinyServer(function(input, output, session) {
     
   })
   
-  ## take a snapshot
-  observeEvent(input$snap,{
-    ###proxy$mapId <- "proxMap"
-    mapshot(m, file = paste0(getwd(), "/mapPics/prox.png"))
-    print("hello")
-    session$sendCustomMessage(type = 'testmessage',
-                              message = 'Snapshot saved!')
-    }
-  )
-
-
+  # variable used for on load one time actions
   onLoad <- TRUE
-  
 
   # render the UI, adding the correct number of dataDropdowns
   observe({
@@ -230,6 +224,7 @@ shinyServer(function(input, output, session) {
     length(features$df$id) > 1
   })
   
+  # renders the modal based on which data set is selected
   observe({
     if(features$modalId > 0){
       output$optionsModalContent <- renderUI({
@@ -239,30 +234,41 @@ shinyServer(function(input, output, session) {
     }
   })
   
+  # Shiny module for the advanced options modal
   advancedOptionsContentInput <- function(id){
     ns <- NS(id)
     dataName <- as.character(features$df[features$df$id==id,'name'])
     cluster <- as.logical(features$df[features$df$id==id,'cluster'])
     parameter <- as.character(features$df[features$df$id==id,'parameter'])
+    description <- as.character(allData[allData$name==dataName,'description'])
     tags$div(
-      h2(dataName),
-      checkboxInput(ns("cluster"), "Cluster Graph (Only for Point Data)", value=cluster),
+      h3(dataName),
+      p(description),
+      hr(),
+      h4("Advanced Features*"),
+      checkboxInput(ns("cluster"), "Cluster Data", value=cluster),
+      p("For data sets with a large number of point data, you can cluster the data so that a group of points is represented as one.", em("Note that this only functions on point data and will not affect line or polygon data at all.")),
+      hr(),
       selectizeInput(ns("dataParameter"), "Data Parameter",
                   c("",as.character(names(downloadedData[[dataName]]))),
                   selected=parameter,
                   options = list(placeholder = 'Please select an option below')
-      )
+      ),
+      p("Public data sets often have lots of interesting parameters that aren't directly related to geography or location. With this feature, you can visualize data based on one of these parameters. Choose from one of the parameters above to visualize that parameter across the geographical data already presented. For point data, the radius of each point will reflect the parameter chosen. For polygon data, the color of each section will reflect the parameter chosen. ", em("Please only select numerical parameters!"), " Choosing non-numerical parameters may present you with useless data or may even cause your website to crash. As always, just refresh if anything goes wrong. If you are curious what kinds of parameters the data set has, check out the data viewer tab at the top of the main website!"),
+      hr(),
+      p("*Note that some of these functions are experimental, and may not work as expected unless utilized correctly. Feel free to try these tools out, and ", strong("if anything breaks, just refresh."), " Enjoy!")
     )
   }
   
+  # server functions for the above Shiny module
   advancedOptionsContent <- function(input, output, session, modalId){
-    observe({
+    observeEvent(input$cluster, {
       if(!is.null(input$cluster)){
         features$df[features$df$id==modalId,'cluster'] <- input$cluster
       }
     })
     
-    observe({
+    observeEvent(input$dataParameter, {
       if(!is.null(input$dataParameter)){
         features$df[features$df$id==modalId,'parameter'] <- input$dataParameter
       }
@@ -283,6 +289,60 @@ shinyServer(function(input, output, session) {
     updateSelectInput(session, "dataset",
                       choices = df()$name
     )
+  })
+  
+  ## SHOWCASE FUNCTIONS
+  
+  output$lightMap <- renderLeaflet({
+    lightLink <- "https://data.boston.gov/dataset/52b0fdad-4037-460c-9c92-290f5774ab2b/resource/c2fcc1e3-c38f-44ad-a0cf-e5ea2a6585b5/download/streetlight-locations.csv"
+    neighborhoodLink <- "http://bostonopendata-boston.opendata.arcgis.com/datasets/3525b0ee6e6b427f9aab5d0a1d0a1a28_0.geojson"
+    
+    lightFile <- "./data/light.rds"
+    lightData <- NULL
+    
+    
+    if(file.exists(lightFile)){
+      lightData <- readRDS(lightFile)
+    }else{
+      lightData <- read.csv(lightLink)
+      saveRDS(lightData, lightFile)
+    }
+    
+    neighborhoodJson <- geojson_read(neighborhoodLink, what="sp")
+    
+    # make sure there are no N/A entries in data
+    complete <- lightData[complete.cases(lightData),]
+    
+    sp::coordinates(complete) <- ~Long+Lat
+    sp::proj4string(complete) <- sp::proj4string(neighborhoodJson)
+    pts.poly <- point.in.poly(complete, neighborhoodJson)
+    numLightsInNeighborhood <- tapply(pts.poly@data$OBJECTID, pts.poly@data$Name, FUN=length)
+    
+    neighborhoodJson@data$totalLights <- unname(numLightsInNeighborhood[neighborhoodJson@data$Name])
+    
+    neighborhoodJson@data$lightDensity <- neighborhoodJson@data$totalLights/neighborhoodJson@data$SqMiles
+    
+    pal <- colorNumeric(c("#0c0b2d", "white"), domain = neighborhoodJson@data$lightDensity)
+    shinyjs::hide(id="loading4")
+    shinyjs::addClass(id="")
+    leaflet() %>%
+      addProviderTiles(providers$CartoDB.DarkMatterNoLabels) %>%
+      # centering the view on a specific location (Boston)
+      setView(lng = -71.0589, lat = 42.3, zoom = 11) %>%
+      # the legend for the shading of the zones
+      addLegend("bottomright", pal = pal, values = neighborhoodJson@data$lightDensity,
+                title = "Light Density In Neighborhoods",
+                opacity = 1) %>%
+      # adding the zones
+      addPolygons(data = neighborhoodJson, weight = 0,
+                  color = "#ffd6d6", popup = ~paste("<b>", Name, "</b><br/>Street Lights: ",
+                                                          totalLights, "<br/>Area: ",
+                                                          SqMiles, " square miles<br/>Light Density: ",
+                                                          lightDensity), group = "zones",
+                  fillColor = ~pal(lightDensity),
+                  fillOpacity = 0.95,
+                  label = ~Name
+      )
   })
 }
 )

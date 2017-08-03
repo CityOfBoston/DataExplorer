@@ -35,6 +35,25 @@ h1, h2, h3, h4 { font-weight: 400; }
   transition-delay: 0;
 }
 
+#share {
+  /* Appearance */
+  background-color: white;
+  background-color: rgba(0,0,0,0);
+  border-color: gray;
+  border-color: rgba(0,0,0,0);
+  box-shadow: none;
+  padding: 0 20px 0 20px;
+  /* Fade out while not hovering */
+  opacity: 0.65;
+  transition: opacity 500ms 1s;
+  margin-bottom: 0;
+}
+#share:hover {
+  /* Fade in while hovering */
+  opacity: 0.95;
+  transition-delay: 0;
+}
+
 /* Position and style citation */
 #cite {
   position: absolute;
@@ -54,4 +73,8 @@ h1, h2, h3, h4 { font-weight: 400; }
   height: 12px;
   border: 1px solid rgba(0, 0, 0, .2);
   border-radius: 6px;
+}
+
+.panel-body .remove-padding {
+  padding: 0px 0px 15px 0px;
 }

@@ -17,9 +17,14 @@ titles <- lapply(datasets, function(x){
 urls <- lapply(datasets, function(x){
   return (x$resources[[1]]$url)
 })
+descriptions <- lapply(datasets, function(x){
+  return(x$notes)
+})
 data <- setNames(urls,titles)
 data <- data[order(names(data))]
 boundJson <- geojson_read(bostonLink, what = "sp")
+
+allData <- data.frame(name=as.character(titles), url=as.character(urls), description=as.character(descriptions), stringsAsFactors=FALSE)
 
 # reactive values list of cached data
 downloadedData <- reactiveValues()
@@ -117,15 +122,18 @@ dataSelectPanel <- function(input, output, session, features, panelId, realSessi
   })
   
   # live updating the data set name
-  observe({
+  observeEvent(input$data, {
     if(!is.null(input$data) && input$data != ''){
-      features$df[features$df$id==panelId,'name'] <- input$data
-      # features$df[features$df$id==panelId,'parameter'] <- ""
+      if(input$data != features$df[features$df$id==panelId,'name']){
+        features$df[features$df$id==panelId,'name'] <- input$data
+        features$df[features$df$id==panelId,'parameter'] <- ""
+        features$df[features$df$id==panelId,'cluster'] <- FALSE
+      }
     }
   })
   
   # live updating the data color
-  observe({
+  observeEvent(input$color, {
     if(!is.null(input$color) && input$color != ''){
       features$df[features$df$id==panelId, 'color'] <- input$color
     }
@@ -133,8 +141,14 @@ dataSelectPanel <- function(input, output, session, features, panelId, realSessi
   
   # open advanced options and populate modal
   observeEvent(input$openModal, {
-    toggleModal(realSession, "optionsModal")
-    features$modalId <- panelId
+    closeAlert(realSession, "dataNotDownloadedError")
+    if(features$df[features$df$id==panelId,'name'] %in% names(downloadedData)){
+      toggleModal(realSession, "optionsModal")
+      features$modalId <- panelId
+    }else{
+      createAlert(realSession, anchorId="errorAlert", alertId="dataNotDownloadedError",
+                  style="warning", content="Please update datalayers before checking advanced options!")
+    }
   })
 }
 
@@ -146,3 +160,7 @@ titleWithColor <- function(title, color){
   return(paste(paste0("<div class='colorbox' style='background: ", color, ";'/>"), title))
 }
 
+# UI Elements
+facebookHtml <- '<iframe src="https://www.facebook.com/plugins/share_button.php?href=https%3A%2F%2Fdevelopers.facebook.com%2Fdocs%2Fplugins%2F&layout=button&size=small&mobile_iframe=true&width=65&height=20&appId" width="65" height="20" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowTransparency="true"></iframe>'
+twitterHtml <- '<a href="https://twitter.com/share" class="twitter-share-button" data-show-count="false">Tweet</a><script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>'
+pinterestHtml <- '<a data-pin-do="buttonBookmark" data-pin-save="true" href="https://www.pinterest.com/pin/create/button/" width="65"></a> <script async defer src="//assets.pinterest.com/js/pinit.js"></script>'

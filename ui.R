@@ -1,9 +1,6 @@
-library(shinydashboard)
-
-
 navbarPage("Analyze Boston Data Explorer", id="nav",
   tabPanel("Interactive map",
-    bsModal("optionsModal", "Advanced Options", "", uiOutput("optionsModalContent")),
+    bsModal("optionsModal", "Options", "", uiOutput("optionsModalContent"), size="large"),
     div(class="outer",
       tags$head(
         # Include our custom CSS
@@ -20,10 +17,10 @@ navbarPage("Analyze Boston Data Explorer", id="nav",
                     draggable = FALSE, top = 80, left = "auto", right = 20, bottom = "auto",
                     width = 330, height = "auto",
                     h2("Data Explorer"),
+                    bsAlert("errorAlert"),
                     uiOutput("dataDropdowns"),
                     bsButton("add", "", icon=icon("plus")),
                     bsButton("update", "Update Datalayers", style="primary"),
-                    # bsButton("snap", "Save picture", style="primary"),
                     # hidden text to keep the output$moreThanOnePanel value bound and updating
                     div(textOutput("moreThanOnePanel"), style="color:white; height:0px")
                 
@@ -46,5 +43,35 @@ navbarPage("Analyze Boston Data Explorer", id="nav",
     ),
     hr(),
     DT::dataTableOutput("datatable")
+  ),
+  
+  ########## SHOWCASES ############
+  tabPanel("Data Showcases",
+    useShinyjs(),
+    fluidRow(
+      column(6,
+             # see this for docs: https://ebailey78.github.io/shinyBS/docs/Collapses.html#bsCollapse
+             bsCollapse(
+                 bsCollapsePanel("Map 1",
+                               div("insert stuff here!")
+                 ),
+                 bsCollapsePanel("Map 3",
+                               div("insert stuff here!")
+                 )
+             )
+            
+      ),
+      column(6,
+             bsCollapse(
+               bsCollapsePanel("Map 2",
+                               div("insert stuff here!")
+               ),
+               bsCollapsePanel("Light Pollution in Boston",
+                               h2(id="loading4", "Loading..."),
+                               leafletOutput("lightMap", height="600")
+               )
+             )
+      )
+    )
   )
 )
