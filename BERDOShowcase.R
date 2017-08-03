@@ -36,6 +36,11 @@ palEmissions <- colorBin("OrRd", domain = BERDO$GHG_Emissions,bins = binEmission
 
 ui = fluidPage(
                         leafletOutput("BERDOmap", height = "522px"),
+                        box(
+                          width=12,solidheader=TRUE,collapse=FALSE,status='primary',
+                            h5("The",
+                               a("Building Energy Reporting and Disclosure Ordinance (BERDO)",href="https://www.boston.gov/environment-and-energy/building-energy-reporting-and-disclosure-ordinance"), "reports annual energy usage of buildings in Boston. We have displayed this data in a gradient                           ")
+                            ),
                         fluidRow(
                                   box(width = 3,solidHeader = TRUE, collapsible = FALSE, status='primary', fluidPage(tags$a(img(src="https://raw.githubusercontent.com/SamYoung20/dataPortal/6e0cc8ab3bedf1d5a42dbf0cbc4ce4558f858c2d/examples/Energy%20and%20Environment%20pics/unnamed.jpg", width = "100%"),href="https://imagine.boston.gov/wp-content/uploads/2017/07/Ib2030%20BOOK_Spreads--Energy%20and%20Environment.pdf",target="_blank"))),
                                   box(width = 3,solidHeader = TRUE, collapsible = FALSE, status='primary', fluidPage(tags$a(img(src="https://raw.githubusercontent.com/SamYoung20/dataPortal/6e0cc8ab3bedf1d5a42dbf0cbc4ce4558f858c2d/examples/Energy%20and%20Environment%20pics/unnamed%20(2).jpg", width = "100%"),href="http://climatechangedata.boston.gov/",target="_blank"))),
@@ -91,7 +96,10 @@ server = function(input, output){
       addEasyButton(easyButton(
         icon="fa-crosshairs", title="Locate Me",
         onClick=JS("function(btn, map){ map.locate({setView: true}); }")))%>%
-      addMiniMap(width = 75, height = 75)
+      #addMiniMap(width = 75, height = 75)%>%
+      addLegend(title="Energy Star Score",position=c("topright"),values=BERDO$EnergyStar_Score,pal=palScore)%>%
+      addLegend(title="Energy Usage",position=c("topright"),values=BERDO$Site_Energy_Use,pal=palUsage)%>%
+      addLegend(position=c("topright"),values=BERDO$GHG_Emissions,pal=palEmissions)
   })
     #BERDO SERVER END
   
