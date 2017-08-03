@@ -8,8 +8,8 @@ library(mapview)
 # # By ordering by centile, we ensure that the (comparatively rare) SuperZIPs
 # # will be drawn last and thus be easier to see
 # zipdata <- zipdata[order(zipdata$centile),]
-
-function(input, output, session) { 
+port = 2590
+shinyServer(function(input, output, session) { 
 
   ## Interactive Map ###########################################
   m <- leaflet()
@@ -18,13 +18,13 @@ function(input, output, session) {
   nextId <- 2
   # counter for tracking which module has had its server function called
   minModuleCalled <- 0
-  
   # stored values of front end values
   # df stores the ids, names colors, and other values related to each dataset
   # modalId is the id of the dataset that we want to display on the advanced features modal
+  
   features <- reactiveValues(df=data.frame(id=c(1),name=c(""),
                              color=c("blue"), cluster=c(FALSE), parameter=c(""), stringsAsFactors=FALSE),
-                             modalId=0)
+                             modalId=0, urltext= "" )
   
   # Create the map
   output$map <- renderLeaflet({
@@ -39,10 +39,11 @@ function(input, output, session) {
       addCityBound()
       
   })
-  
+
   checkQuery <- function(){
     # check query before rendering dropdowns, add data
     query <- getQueryString()
+    print(query)
     if(length(query) > 0){
       qdf <- data.frame(id=strsplit(query$id, ",")[[1]],
                         name=strsplit(query$name, ",")[[1]],
@@ -52,7 +53,7 @@ function(input, output, session) {
                         stringsAsFactors=FALSE)
       print(qdf)
       features$df <- qdf
-      
+      features$urltext <- paste0('http://', session$clientData$url_hostname,':', session$clientData$url_port)
       # adding data
       proxy <- leafletProxy("map")
       by(features$df, 1:nrow(features$df), function(row){
@@ -78,6 +79,7 @@ function(input, output, session) {
   }
   
   
+  
   # utility function to save values into the reactive features
   saveFeatures <- function(){
     features$df$name <- lapply(features$df$id, function(i){
@@ -100,9 +102,41 @@ function(input, output, session) {
   # input data for choices about datasets
   df <- eventReactive(input$update, {
     saveFeatures()
-    # updateQueryString(createQueryString())
+    updateQueryString(createQueryString())
+    features$urltext <- paste0('http://', session$clientData$url_hostname,':', session$clientData$url_port, '/', createQueryString())
+    #features$urltext <- URLencode(features$urltext)
+    #features$urltext<-gsub(" ","&",features$urltext)
+    print(features$urltext)
+    print(URLencode(features$urltext, reserved = TRUE, repeated = FALSE))
     features$df
   })
+  #<script asyn src="//platform.twitter.com/widgets.js" charset="utf-8"></script>')),
+  observe({
+    print(features$urltext)
+    print(session$clientData$url_port)
+    #features$urltext<-"https://www.google.com/maps/"
+    output$sharables <- renderUI({
+      tags$div(
+        tags$div(HTML(paste( '<div id="fb-root"></div><script>(function(d, s, id) {
+                       var js, fjs = d.getElementsByTagName(s)[0];
+                       if (d.getElementById(id)) return;
+                       js = d.createElement(s); js.id = id;
+                       js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.10";
+                       fjs.parentNode.insertBefore(js, fjs);}(document, "script", "facebook-jssdk"));</script>
+                       <div class="fb-share-button" data-href=',features$urltext,' 
+                       data-layout="button" data-size="small" data-mobile-iframe="true"><a class="fb-xfbml-parse-ignore" target="_blank"
+        
+        href="https://www.facebook.com/sharer/sharer.php?u=',URLencode(features$urltext, reserved = TRUE, repeated = FALSE),'&amp;src=sdkpreparse">Share</a></div>'))),
+        tags$div(HTML(paste0('<a href="https://twitter.com/share" data-text="Check out this map I made with Analyze Boston!" data-url=', gsub(" ","&",features$urltext),' class="twitter-share-button" data-show-count="false">
+          Tweet</a><script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>'))))
+        #tags$div(HTML('<a data-pin-do="buttonBookmark" data-pin-save="true" href="https://www.pinterest.com/pin/create/button/" data-pin-url="https://www.google.com/maps">
+        #              </a> <script async defer src="//assets.pinterest.com/js/pinit.js"></script>')))
+    }
+    )
+    runjs("twttr.widgets.load()")
+    runjs("twttr.widgets.load()")
+  })
+  
   
   createQueryString <- function(){
     paste0("?",
@@ -251,3 +285,4 @@ function(input, output, session) {
     )
   })
 }
+)
