@@ -21,11 +21,11 @@ charging_popuptext <-paste(sep="<br/>",
 ui <- fluidPage(
                 
   leafletOutput("drivemap"),
-                h5("Test", a("Boston Bike", href="https://www.boston.gov/departments/boston-bikes",target="_blank"), "Text"),
+                h5("Utilizing the Emergency Parking and Charging Stations datasets from Boston we have produced an interactive visualization mapping out suitable parking tailored to an individuals needs."),
                 fluidRow(
-                  box(width = 4,solidHeader = TRUE, collapsible = FALSE, status='primary', fluidPage(tags$a(img(src="https://raw.githubusercontent.com/SamYoung20/dataPortal/6e0cc8ab3bedf1d5a42dbf0cbc4ce4558f858c2d/examples/Energy%20and%20Environment%20pics/unnamed.jpg", width = "100%"),href="https://imagine.boston.gov/wp-content/uploads/2017/07/Ib2030%20BOOK_Spreads--Energy%20and%20Environment.pdf",target="_blank"))),
-                  box(width = 4,solidHeader = TRUE, collapsible = FALSE, status='primary', fluidPage(tags$a(img(src="https://raw.githubusercontent.com/SamYoung20/dataPortal/6e0cc8ab3bedf1d5a42dbf0cbc4ce4558f858c2d/examples/Energy%20and%20Environment%20pics/unnamed%20(2).jpg", width = "100%"),href="http://climatechangedata.boston.gov/",target="_blank"))),
-                  box(width = 4,solidHeader = TRUE, collapsible = FALSE, status='primary', fluidPage(tags$a(img(src="https://raw.githubusercontent.com/SamYoung20/dataPortal/6e0cc8ab3bedf1d5a42dbf0cbc4ce4558f858c2d/examples/Energy%20and%20Environment%20pics/unnamed%20(1).jpg", width = "100%"),href="http://www.greenribboncommission.org/",target="_blank")))
+                  box(width = 4,solidHeader = TRUE, collapsible = FALSE, status='primary', fluidPage(tags$a(img(src="https://raw.githubusercontent.com/rneogy/DataExplorer/master/Resources/IB2030Logo.jpg", width = "100%"),href="https://imagine.boston.gov/wp-content/uploads/2017/07/Ib2030%20BOOK_Spreads--Transportation.pdf",target="_blank"))),
+                  box(width = 4,solidHeader = TRUE, collapsible = FALSE, status='primary', fluidPage(tags$a(img(src="https://raw.githubusercontent.com/rneogy/DataExplorer/master/Resources/VisionZeroLogo.PNG", width = "100%"),href="http://www.visionzeroboston.org/",target="_blank"))),
+                  box(width = 4,solidHeader = TRUE, collapsible = FALSE, status='primary', fluidPage(tags$a(img(src="https://raw.githubusercontent.com/rneogy/DataExplorer/master/Resources/ZipCarLogo.png", width = "100%"),href="https://www.boston.gov/transportation/drive-boston",target="_blank")))
                   )
   )
 
@@ -44,7 +44,6 @@ server <- function(input, output) {
       addEasyButton(easyButton(
         icon="fa-crosshairs", title="Locate Me",
         onClick=JS("function(btn, map){ map.locate({setView: true}); }")))%>%
-      addMiniMap(width = 75, height = 75)%>%
       addLayersControl(
         baseGroups=c("Emergency Parking","Charging Stations"),
         options=layersControlOptions(collapsed=FALSE)
