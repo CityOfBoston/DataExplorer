@@ -1,5 +1,9 @@
 library(RColorBrewer)
 library(colourpicker)
+<<<<<<< HEAD
+library(mapview)
+=======
+>>>>>>> 1a669f779bfee55b14c2a655025c38e66f258d11
 library(spatialEco)
 
 # # Leaflet bindings are a bit slow; for now we'll just sample to compensate
