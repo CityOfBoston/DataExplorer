@@ -52,8 +52,25 @@ navbarPage("Analyze Boston Data Explorer", id="nav",
       column(6,
              # see this for docs: https://ebailey78.github.io/shinyBS/docs/Collapses.html#bsCollapse
              bsCollapse(
-                 bsCollapsePanel("Map 1",
-                               div("insert stuff here!")
+                 bsCollapsePanel("Bike Map",
+                                 fluidPage(
+                                   leafletOutput("bikemap"),
+                                   p("This map helps people find routes to get around", 
+                                      a("Boston by Bike.", href="https://www.boston.gov/departments/boston-bikes",target="_blank"), 
+                                      "We used two datasets from", 
+                                      a("Analyze Boston:", href="https://data.boston.gov/", target="_blank"), 
+                                      "Existing Bike Network shows which streets have bike lanes that riders can saftely use, and Hubway Stations.", 
+                                      a("Hubway", href="https://www.thehubway.com/",target="_blank"), 
+                                      "is a bike share program that allows riders to pick up a bike at one location, ride to their destination and drop it off at a different station."),
+                                   p(a("Go Boston 2030", href="https://www.boston.gov/transportation/go-boston-2030", target="_blank"), 
+                                      "is a City of Boston initiative that envisions safer, more accessible, and more sustainable transportation in Boston's future."
+                                   ),
+                                   fluidRow(
+                                     column(width = 4, fluidPage(tags$a(img(src="https://raw.githubusercontent.com/rneogy/DataExplorer/master/Resources/IB2030Logo.jpg", width = "100%"),href="https://imagine.boston.gov/wp-content/uploads/2017/07/Ib2030%20BOOK_Spreads--Transportation.pdf",target="_blank"))),
+                                     column(width = 4, fluidPage(tags$a(img(src="https://raw.githubusercontent.com/rneogy/DataExplorer/master/Resources/BostonBikesLogo.png", width = "100%"),href="http://goboston2030.org/en/",target="_blank"))),
+                                     column(width = 4, fluidPage(tags$a(img(src="https://raw.githubusercontent.com/rneogy/DataExplorer/master/Resources/HubwayLogo.png", width = "100%"),href="https://www.thehubway.com/",target="_blank")))
+                                   )
+                                 )
                  ),
                  bsCollapsePanel("Map 3",
                                div("insert stuff here!")
@@ -62,13 +79,33 @@ navbarPage("Analyze Boston Data Explorer", id="nav",
             
       ),
       column(6,
-             bsCollapse(
-               bsCollapsePanel("Map 2",
-                               div("insert stuff here!")
+             bsCollapse(id="rightCollapse",
+               bsCollapsePanel("Boston Education",
+                               fluidPage(
+                                 leafletOutput("SCHOOLmap", height = "522px"),
+                                 fluidRow( fluidRow(
+                                   column(width = 1),column(width = 10,p("This map helps people visualize education across Boston to show where different public and private schools, and colleges/universities are located.Learn about the City of Boston's initiative to improve public education and expand early education below.")), column(width = 1)),
+                                           column(width = 4, fluidPage(tags$a(img(src="https://raw.githubusercontent.com/SamYoung20/dataPortal/6e0cc8ab3bedf1d5a42dbf0cbc4ce4558f858c2d/examples/Energy%20and%20Environment%20pics/unnamed.jpg", width = "100%"),href="https://imagine.boston.gov/wp-content/uploads/2017/07/Ib2030%20BOOK_Spreads--Energy%20and%20Environment.pdf",target="_blank"))),
+                                           column(width = 4, fluidPage(tags$a(img(src="https://pbs.twimg.com/media/CroEOLKWAAAnhhf.jpg:large", width = "100%"),href="https://www.bostonpublicschools.org/buildbps",target="_blank"))),
+                                           column(width = 4, fluidPage(tags$a(img(src="https://www.barrfoundation.org/assets/logo-821db212e468b22f9c4e0c3774d6214de98e41745c32d26bc3075a504f43f531.svg", width = "100%"),href="https://www.barrfoundation.org/partners/boston-k1ds",target="_blank")))
+                                 )
+                               )
                ),
-               bsCollapsePanel("Light Pollution in Boston",
-                               h2(id="loading4", "Loading..."),
-                               leafletOutput("lightMap", height="600")
+               bsCollapsePanel("Street Lamps in Boston",
+                               img(id="loading4", src="/Resources/loading.gif"),
+                               leafletOutput("lightMap", height="600"),
+                               br(),
+                               p("This map takes the ",
+                                   a("Streetlight Locations data set",href="https://data.boston.gov/dataset/streetlight-locations"),
+                                   " and intersects it with the ",
+                                   a("Neighborhoods data set", href="https://data.boston.gov/dataset/boston-neighborhoods"),
+                                   " in order to show how many streetlights there are per square mile in each neighborhood. With ",
+                                   "this visualization, we can easily see both the level of light pollution near Downtown Boston and ",
+                                   "the lack of well-lit areas in the surrounding areas."),
+                               tags$b("Make an impact: "),
+                               p("Did you know you can request better lighting in your neighborhood online?", 
+                                " Check out ", a("Boston's Street Lighting Division website", href="https://www.cityofboston.gov/publicworks/lighting/"),
+                                " for more info!")
                )
              )
       )
