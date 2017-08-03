@@ -1,9 +1,5 @@
 library(RColorBrewer)
 library(colourpicker)
-<<<<<<< HEAD
-library(mapview)
-=======
->>>>>>> 1a669f779bfee55b14c2a655025c38e66f258d11
 library(spatialEco)
 
 # # Leaflet bindings are a bit slow; for now we'll just sample to compensate
@@ -316,4 +312,86 @@ function(input, output, session) {
                   label = ~Name
       )
   })
+  
+  #BERDO SERVER START
+  output$SCHOOLmap <- renderLeaflet({
+    blankicon <- makeIcon(iconUrl = ("https://raw.githubusercontent.com/agnev1021/GEHC-/master/Icons/blank.png?token=AcE3av8vBtM0JDio5ziah-yetTkn3yrWks5ZfSpmwA%3D%3D"), iconWidth = 1, iconHeight = 1)
+    collegeicon <- makeIcon(iconUrl = ("https://cdn2.iconfinder.com/data/icons/location-map-simplicity/512/university_school-512.png"), iconWidth = 50, iconHeight = 55)
+    publicschools <- geojsonio::geojson_read("http://bostonopendata-boston.opendata.arcgis.com/datasets/1d9509a8b2fd485d9ad471ba2fdb1f90_0.geojson", what = "sp")
+    nonpublicschools <- geojsonio::geojson_read("http://bostonopendata-boston.opendata.arcgis.com/datasets/0046426a3e4340a6b025ad52b41be70a_1.geojson", what="sp")
+    colleges <- geojsonio::geojson_read("http://bostonopendata-boston.opendata.arcgis.com/datasets/cbf14bb032ef4bd38e20429f71acb61a_2.geojson",what="sp")
+    neighborhoodLink <- "http://bostonopendata-boston.opendata.arcgis.com/datasets/3525b0ee6e6b427f9aab5d0a1d0a1a28_0.geojson"
+    neighborhoodJson <- geojsonio::geojson_read(neighborhoodLink,what = "sp")
+    
+    leaflet()%>%
+      addProviderTiles(providers$CartoDB.Positron) %>%
+      setView(lng =-71.057083, lat = 42.3601, zoom = 11) %>%
+      addPolygons(data = neighborhoodJson, weight = 2, color = "blue",
+                  fill = TRUE, popup=~paste("<b>", Name),group = 'Neighborhoods')%>%
+      addMarkers(data=publicschools,
+                 clusterOptions=markerClusterOptions(),
+                 icon=collegeicon,
+                 layerId = "Names",
+                 label=publicschools$SCH_NAME,
+                 popup=paste(format(tags$b("Name:")), publicschools$SCH_NAME, "<br/>",format(tags$b("Grades:")), publicschools$SCH_TYPE), 
+                 group="Public Schools")%>%
+      addMarkers(data=nonpublicschools,
+                 clusterOptions=markerClusterOptions(),
+                 icon=collegeicon,
+                 layerId = "Names",
+                 label=nonpublicschools$NAME,
+                 popup=paste(format(tags$b("Name:")), nonpublicschools$NAME, "<br/>",format(tags$b("Grades:")), nonpublicschools$GRADES,"<br/>",format(tags$b("Type:")), nonpublicschools$TYPE), 
+                 group="Non-Public Schools")%>%
+      addMarkers(data=colleges,
+                 clusterOptions=markerClusterOptions(),
+                 icon=collegeicon,
+                 layerId = "Names",
+                 label=colleges$Name,
+                 popup=paste(format(tags$b("Name:")), colleges$Name, "<br/>",format(tags$b("Neighborhood:")), colleges$City,"<br/>","<a href='",colleges$URL,"' target='_blank'>",colleges$URL,"</a>"), 
+                 group="Colleges/Universities")%>%
+      addEasyButton(easyButton(
+        icon="fa-globe", title="Zoom to Boston",
+        onClick=JS("function(btn, map){ map.setZoom(11); }"))) %>%
+      addEasyButton(easyButton(
+        icon="fa-crosshairs", title="Locate Me",
+        onClick=JS("function(btn, map){ map.locate({setView: true}); }")))%>%
+      addMiniMap()%>%
+      addLayersControl(
+        baseGroups = c("Public Schools","Non-Public Schools","Colleges/Universities"),
+        overlayGroups = c("Neighborhoods"),
+        options=layersControlOptions(collapsed=FALSE)
+      )
+  })
+  #BERDO SERVER END
+  
+  #Bike Map SERVER START
+  output$bikemap <- renderLeaflet({
+    bikelanes <- geojsonio::geojson_read("http://bostonopendata-boston.opendata.arcgis.com/datasets/d02c9d2003af455fbc37f550cc53d3a4_0.geojson", what = "sp")
+    
+    hubwaystations <- read.csv("https://s3.amazonaws.com/hubway-data/Hubway_Stations_2011_2016.csv")
+    
+    hubwaypoints <-cbind(as.numeric(hubwaystations$Longitude),as.numeric(hubwaystations$Latitude))
+    
+    hubway_popuptext <- paste(sep="<br/>",
+                              hubwaystations$Station)
+    
+    leaflet(height = 100)%>%
+      addProviderTiles(providers$CartoDB.Positron) %>%
+      setView(lng =-71.057083, lat = 42.3601, zoom = 11) %>%
+      addPolylines(data=bikelanes,group="Bike Network",weight=4)%>%
+      addMarkers(data=hubwaypoints,popup=hubway_popuptext,group="Hubway Stations",clusterId = 'bikes',clusterOptions = markerClusterOptions())%>%
+      addEasyButton(easyButton(
+        icon="fa-globe", title="Zoom to Boston",
+        onClick=JS("function(btn, map){ map.setZoom(8); }"))) %>%
+      addEasyButton(easyButton(
+        icon="fa-crosshairs", title="Locate Me",
+        onClick=JS("function(btn, map){ map.locate({setView: true}); }")))%>%
+      addLayersControl(
+        overlayGroups = c("Bike Network","Hubway Stations"),
+        options=layersControlOptions(collapsed=FALSE)
+      ) %>%
+      addCityBound()
+  })
+  #Bike Map SERVER END
+  
 }
