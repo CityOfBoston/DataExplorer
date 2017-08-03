@@ -40,7 +40,7 @@ server <- function(input, output) {
   #Bike Map SERVER START
   output$bikemap <- renderLeaflet({
     leaflet(height = 100)%>%
-      addProviderTiles(providers$CartoDB.Positron) %>%
+      addProviderTiles(providers$Esri.WorldGrayCanvas, options = providerTileOptions(nowrap = TRUE)) %>%
       setView(lng =-71.057083, lat = 42.3601, zoom = 11) %>%
       addPolylines(data=bikelanes,group="Bike Network",weight=4)%>%
       addMarkers(data=hubwaypoints,popup=hubway_popuptext,group="Hubway Stations",clusterId = 'bikes',clusterOptions = markerClusterOptions())%>%
