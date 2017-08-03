@@ -63,13 +63,25 @@ navbarPage("Analyze Boston Data Explorer", id="nav",
             
       ),
       column(6,
-             bsCollapse(
+             bsCollapse(id="rightCollapse",
                bsCollapsePanel("Map 2",
                                div("insert stuff here!")
                ),
-               bsCollapsePanel("Light Pollution in Boston",
-                               h2(id="loading4", "Loading..."),
-                               leafletOutput("lightMap", height="600")
+               bsCollapsePanel("Street Lamps in Boston",
+                               h2(id="loading4", "Map Loading..."),
+                               leafletOutput("lightMap", height="600"),
+                               br(),
+                               p("This map takes the ",
+                                   a("Streetlight Locations data set",href="https://data.boston.gov/dataset/streetlight-locations"),
+                                   " and intersects it with the ",
+                                   a("Neighborhoods data set", href="https://data.boston.gov/dataset/boston-neighborhoods"),
+                                   " in order to show how many streetlights there are per square mile in each neighborhood. With ",
+                                   "this visualization, we can easily see both the level of light pollution near Downtown Boston and ",
+                                   "the lack of well-lit areas in the surrounding areas."),
+                               tags$b("Make an impact: "),
+                               p("Did you know you can request better lighting in your neighborhood online?", 
+                                " Check out ", a("Boston's Street Lighting Division website", href="https://www.cityofboston.gov/publicworks/lighting/"),
+                                " for more info!")
                )
              )
       )
