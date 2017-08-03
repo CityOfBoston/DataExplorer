@@ -93,7 +93,7 @@ navbarPage("Analyze Boston Data Explorer", id="nav",
                                )
                ),
                bsCollapsePanel("Street Lamps in Boston",
-                               img(id="loading4", src="/Resources/loading.gif"),
+                               img(id="loading4", src="Resources/loading.gif"),
                                leafletOutput("lightMap", height="600"),
                                br(),
                                p("This map takes the ",
