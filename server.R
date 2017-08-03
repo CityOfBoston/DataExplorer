@@ -293,6 +293,7 @@ shinyServer(function(input, output, session) {
   
   ## SHOWCASE FUNCTIONS
   
+  # LIGHT MAP START
   output$lightMap <- renderLeaflet({
     lightLink <- "https://data.boston.gov/dataset/52b0fdad-4037-460c-9c92-290f5774ab2b/resource/c2fcc1e3-c38f-44ad-a0cf-e5ea2a6585b5/download/streetlight-locations.csv"
     neighborhoodLink <- "http://bostonopendata-boston.opendata.arcgis.com/datasets/3525b0ee6e6b427f9aab5d0a1d0a1a28_0.geojson"
@@ -323,7 +324,9 @@ shinyServer(function(input, output, session) {
     neighborhoodJson@data$lightDensity <- neighborhoodJson@data$totalLights/neighborhoodJson@data$SqMiles
     
     pal <- colorNumeric(c("#0c0b2d", "white"), domain = neighborhoodJson@data$lightDensity)
+    
     shinyjs::hide(id="loading4")
+    
     leaflet() %>%
       addProviderTiles(providers$CartoDB.DarkMatterNoLabels) %>%
       # centering the view on a specific location (Boston)
@@ -343,8 +346,9 @@ shinyServer(function(input, output, session) {
                   label = ~Name
       )
   })
+  # LIGHT MAP END
   
-  #BERDO SERVER START
+  #SCHOOL SERVER START
   output$SCHOOLmap <- renderLeaflet({
     blankicon <- makeIcon(iconUrl = ("https://raw.githubusercontent.com/agnev1021/GEHC-/master/Icons/blank.png?token=AcE3av8vBtM0JDio5ziah-yetTkn3yrWks5ZfSpmwA%3D%3D"), iconWidth = 1, iconHeight = 1)
     collegeicon <- makeIcon(iconUrl = ("https://cdn2.iconfinder.com/data/icons/location-map-simplicity/512/university_school-512.png"), iconWidth = 50, iconHeight = 55)
@@ -354,9 +358,11 @@ shinyServer(function(input, output, session) {
     neighborhoodLink <- "http://bostonopendata-boston.opendata.arcgis.com/datasets/3525b0ee6e6b427f9aab5d0a1d0a1a28_0.geojson"
     neighborhoodJson <- geojsonio::geojson_read(neighborhoodLink,what = "sp")
     
+    shinyjs::hide(id="loading2")
+    
     leaflet()%>%
       addProviderTiles(providers$CartoDB.Positron) %>%
-      setView(lng =-71.057083, lat = 42.3601, zoom = 11) %>%
+      setView(lng =-71.057083, lat = 42.32, zoom = 11) %>%
       addPolygons(data = neighborhoodJson, weight = 2, color = "blue",
                   fill = TRUE, popup=~paste("<b>", Name),group = 'Neighborhoods')%>%
       addMarkers(data=publicschools,
@@ -381,19 +387,15 @@ shinyServer(function(input, output, session) {
                  popup=paste(format(tags$b("Name:")), colleges$Name, "<br/>",format(tags$b("Neighborhood:")), colleges$City,"<br/>","<a href='",colleges$URL,"' target='_blank'>",colleges$URL,"</a>"), 
                  group="Colleges/Universities")%>%
       addEasyButton(easyButton(
-        icon="fa-globe", title="Zoom to Boston",
-        onClick=JS("function(btn, map){ map.setZoom(11); }"))) %>%
-      addEasyButton(easyButton(
         icon="fa-crosshairs", title="Locate Me",
         onClick=JS("function(btn, map){ map.locate({setView: true}); }")))%>%
-      addMiniMap()%>%
       addLayersControl(
         baseGroups = c("Public Schools","Non-Public Schools","Colleges/Universities"),
         overlayGroups = c("Neighborhoods"),
         options=layersControlOptions(collapsed=FALSE)
       )
   })
-  #BERDO SERVER END
+  #SCHOOL SERVER END
   
   #Bike Map SERVER START
   output$bikemap <- renderLeaflet({
@@ -406,14 +408,13 @@ shinyServer(function(input, output, session) {
     hubway_popuptext <- paste(sep="<br/>",
                               hubwaystations$Station)
     
+    shinyjs::hide(id="loading1")
+    
     leaflet(height = 100)%>%
       addProviderTiles(providers$CartoDB.Positron) %>%
-      setView(lng =-71.057083, lat = 42.3601, zoom = 11) %>%
-      addPolylines(data=bikelanes,group="Bike Network",weight=4)%>%
+      setView(lng =-71.057083, lat = 42.32, zoom = 11) %>%
+      addPolylines(data=bikelanes,group="Bike Network",weight=2)%>%
       addMarkers(data=hubwaypoints,popup=hubway_popuptext,group="Hubway Stations",clusterId = 'bikes',clusterOptions = markerClusterOptions())%>%
-      addEasyButton(easyButton(
-        icon="fa-globe", title="Zoom to Boston",
-        onClick=JS("function(btn, map){ map.setZoom(8); }"))) %>%
       addEasyButton(easyButton(
         icon="fa-crosshairs", title="Locate Me",
         onClick=JS("function(btn, map){ map.locate({setView: true}); }")))%>%

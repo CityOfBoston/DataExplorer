@@ -7,7 +7,6 @@ navbarPage("Analyze Boston Data Explorer", id="nav",
         includeCSS("styles.css"),
         includeScript("gomap.js"),
         includeScript("widgets.js")
-        #includeScript("facebook-jssdk.js")
       ),
 
       leafletOutput("map", width="100%", height="100%"),
@@ -54,7 +53,9 @@ navbarPage("Analyze Boston Data Explorer", id="nav",
              bsCollapse(
                  bsCollapsePanel("Bike Map",
                                  fluidPage(
+                                   img(id="loading1", src="Resources/loading.gif"),
                                    leafletOutput("bikemap"),
+                                   br(),
                                    p("This map helps people find routes to get around", 
                                       a("Boston by Bike.", href="https://www.boston.gov/departments/boston-bikes",target="_blank"), 
                                       "We used two datasets from", 
@@ -82,12 +83,16 @@ navbarPage("Analyze Boston Data Explorer", id="nav",
              bsCollapse(id="rightCollapse",
                bsCollapsePanel("Boston Education",
                                fluidPage(
-                                 leafletOutput("SCHOOLmap", height = "522px"),
-                                 fluidRow( fluidRow(
-                                   column(width = 1),column(width = 10,p("This map helps people visualize education across Boston to show where different public and private schools, and colleges/universities are located.Learn about the City of Boston's initiative to improve public education and expand early education below.")), column(width = 1)),
-                                           column(width = 4, fluidPage(tags$a(img(src="https://raw.githubusercontent.com/SamYoung20/dataPortal/6e0cc8ab3bedf1d5a42dbf0cbc4ce4558f858c2d/examples/Energy%20and%20Environment%20pics/unnamed.jpg", width = "100%"),href="https://imagine.boston.gov/wp-content/uploads/2017/07/Ib2030%20BOOK_Spreads--Energy%20and%20Environment.pdf",target="_blank"))),
-                                           column(width = 4, fluidPage(tags$a(img(src="https://pbs.twimg.com/media/CroEOLKWAAAnhhf.jpg:large", width = "100%"),href="https://www.bostonpublicschools.org/buildbps",target="_blank"))),
-                                           column(width = 4, fluidPage(tags$a(img(src="https://www.barrfoundation.org/assets/logo-821db212e468b22f9c4e0c3774d6214de98e41745c32d26bc3075a504f43f531.svg", width = "100%"),href="https://www.barrfoundation.org/partners/boston-k1ds",target="_blank")))
+                                 img(id="loading2", src="Resources/loading.gif"),
+                                 leafletOutput("SCHOOLmap"),
+                                 br(),
+                                 fluidRow(
+                                   fluidRow(
+                                      column(width = 1),column(width = 10,p("This map helps people visualize education across Boston to show where different public and private schools, and colleges/universities are located.Learn about the City of Boston's initiative to improve public education and expand early education below.")), column(width = 1)
+                                    ),
+                                    column(width = 4, fluidPage(tags$a(img(src="https://raw.githubusercontent.com/SamYoung20/dataPortal/6e0cc8ab3bedf1d5a42dbf0cbc4ce4558f858c2d/examples/Energy%20and%20Environment%20pics/unnamed.jpg", width = "100%"),href="https://imagine.boston.gov/wp-content/uploads/2017/07/Ib2030%20BOOK_Spreads--Energy%20and%20Environment.pdf",target="_blank"))),
+                                    column(width = 4, fluidPage(tags$a(img(src="https://pbs.twimg.com/media/CroEOLKWAAAnhhf.jpg:large", width = "100%"),href="https://www.bostonpublicschools.org/buildbps",target="_blank"))),
+                                    column(width = 4, fluidPage(tags$a(img(src="https://www.barrfoundation.org/assets/logo-821db212e468b22f9c4e0c3774d6214de98e41745c32d26bc3075a504f43f531.svg", width = "100%"),href="https://www.barrfoundation.org/partners/boston-k1ds",target="_blank")))
                                  )
                                )
                ),
