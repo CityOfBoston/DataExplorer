@@ -50,7 +50,7 @@ navbarPage("Analyze Boston Data Explorer", id="nav",
     fluidRow(
       column(6,
              # see this for docs: https://ebailey78.github.io/shinyBS/docs/Collapses.html#bsCollapse
-             bsCollapse(
+             bsCollapse(open="Bike Map",
                  bsCollapsePanel("Bike Map",
                                  fluidPage(
                                    img(id="loading1", src="Resources/loading.gif"),
@@ -73,14 +73,23 @@ navbarPage("Analyze Boston Data Explorer", id="nav",
                                    )
                                  )
                  ),
-                 bsCollapsePanel("Map 3",
-                               div("insert stuff here!")
+                 bsCollapsePanel("Driving in Boston",
+                         fluidPage(
+                             img(id="loading3", src="Resources/loading.gif"),
+                             leafletOutput("drivemap"),
+                             p("Utilizing the Emergency Parking and Charging Stations datasets from Boston we have produced an interactive visualization mapping out suitable parking tailored to an individuals needs."),
+                             fluidRow(
+                                     column(width = 4, fluidPage(tags$a(img(src="https://raw.githubusercontent.com/rneogy/DataExplorer/master/Resources/IB2030Logo.jpg", width = "100%"),href="https://imagine.boston.gov/wp-content/uploads/2017/07/Ib2030%20BOOK_Spreads--Transportation.pdf",target="_blank"))),
+                                     column(width = 4, fluidPage(tags$a(img(src="https://raw.githubusercontent.com/rneogy/DataExplorer/master/Resources/VisionZeroLogo.PNG", width = "100%"),href="http://www.visionzeroboston.org/",target="_blank"))),
+                                     column(width = 4, fluidPage(tags$a(img(src="https://raw.githubusercontent.com/rneogy/DataExplorer/master/Resources/ZipCarLogo.png", width = "100%"),href="https://www.boston.gov/transportation/drive-boston",target="_blank")))
+                             )
+                         )
                  )
              )
             
       ),
       column(6,
-             bsCollapse(id="rightCollapse",
+             bsCollapse(open="Boston Education",
                bsCollapsePanel("Boston Education",
                                fluidPage(
                                  img(id="loading2", src="Resources/loading.gif"),
@@ -98,7 +107,7 @@ navbarPage("Analyze Boston Data Explorer", id="nav",
                ),
                bsCollapsePanel("Street Lamps in Boston",
                                img(id="loading4", src="Resources/loading.gif"),
-                               leafletOutput("lightMap", height="600"),
+                               leafletOutput("lightMap"),
                                br(),
                                p("This map takes the ",
                                    a("Streetlight Locations data set",href="https://data.boston.gov/dataset/streetlight-locations"),

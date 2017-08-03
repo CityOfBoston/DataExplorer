@@ -328,9 +328,9 @@ shinyServer(function(input, output, session) {
     shinyjs::hide(id="loading4")
     
     leaflet() %>%
-      addProviderTiles(providers$CartoDB.DarkMatterNoLabels) %>%
+      addProviderTiles(providers$Esri.WorldGrayCanvas) %>%
       # centering the view on a specific location (Boston)
-      setView(lng = -71.0589, lat = 42.3, zoom = 11) %>%
+      setView(lng = -71.0589, lat = 42.29, zoom = 11) %>%
       # the legend for the shading of the zones
       addLegend("bottomright", pal = pal, values = neighborhoodJson@data$lightDensity,
                 title = "Light Density In Neighborhoods",
@@ -361,7 +361,7 @@ shinyServer(function(input, output, session) {
     shinyjs::hide(id="loading2")
     
     leaflet()%>%
-      addProviderTiles(providers$CartoDB.Positron) %>%
+      addProviderTiles(providers$Esri.WorldGrayCanvas) %>%
       setView(lng =-71.057083, lat = 42.32, zoom = 11) %>%
       addPolygons(data = neighborhoodJson, weight = 2, color = "blue",
                   fill = TRUE, popup=~paste("<b>", Name),group = 'Neighborhoods')%>%
@@ -411,7 +411,7 @@ shinyServer(function(input, output, session) {
     shinyjs::hide(id="loading1")
     
     leaflet(height = 100)%>%
-      addProviderTiles(providers$CartoDB.Positron) %>%
+      addProviderTiles(providers$Esri.WorldGrayCanvas) %>%
       setView(lng =-71.057083, lat = 42.32, zoom = 11) %>%
       addPolylines(data=bikelanes,group="Bike Network",weight=2)%>%
       addMarkers(data=hubwaypoints,popup=hubway_popuptext,group="Hubway Stations",clusterId = 'bikes',clusterOptions = markerClusterOptions())%>%
@@ -425,6 +425,39 @@ shinyServer(function(input, output, session) {
       addCityBound()
   })
   #Bike Map SERVER END
+  
+  #Drive Map SERVER START
+  output$drivemap <- renderLeaflet({
+    emergencyparking <- geojsonio::geojson_read("http://bostonopendata-boston.opendata.arcgis.com/datasets/53ebc23fcc654111b642f70e61c63852_0.geojson",what = "sp")
+    
+    parking_popuptext <- paste(sep="<br/>",
+                               emergencyparking$Name,
+                               emergencyparking$Address,
+                               emergencyparking$Fee)
+    
+    chargingstations <-geojsonio::geojson_read("http://bostonopendata-boston.opendata.arcgis.com/datasets/465e00f9632145a1ad645a27d27069b4_2.geojson",what="sp")
+    
+    charging_popuptext <-paste(sep="<br/>",
+                               chargingstations$Station_Name,
+                               chargingstations$Street_Address)
+    
+    shinyjs::hide(id="loading3")
+    
+    leaflet()%>%
+      addProviderTiles(providers$Esri.WorldGrayCanvas, options = providerTileOptions(nowrap = TRUE)) %>%
+      setView(lng =-71.057083, lat = 42.32, zoom = 11) %>%
+      addMarkers(data=emergencyparking,popup=parking_popuptext,group="Emergency Parking",clusterId = 'parking',clusterOptions = markerClusterOptions())%>%
+      addMarkers(data=chargingstations,popup=parking_popuptext,group="Charging Stations",clusterId = 'charging stations',clusterOptions = markerClusterOptions())%>%
+      addEasyButton(easyButton(
+        icon="fa-crosshairs", title="Locate Me",
+        onClick=JS("function(btn, map){ map.locate({setView: true}); }")))%>%
+      addLayersControl(
+        baseGroups=c("Emergency Parking","Charging Stations"),
+        options=layersControlOptions(collapsed=FALSE)
+      ) %>%
+      addCityBound()
+  })
+  #Drive Map SERVER END
   
 }
 )
