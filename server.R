@@ -1,6 +1,9 @@
 library(RColorBrewer)
 library(colourpicker)
+<<<<<<< HEAD
 library(mapview)
+=======
+>>>>>>> 1a669f779bfee55b14c2a655025c38e66f258d11
 library(spatialEco)
 
 # # Leaflet bindings are a bit slow; for now we'll just sample to compensate
@@ -51,6 +54,7 @@ function(input, output, session) {
                         cluster=(strsplit(query$cluster, ",")[[1]]=="TRUE"),
                         parameter=strsplit(query$parameter, ",")[[1]],
                         stringsAsFactors=FALSE)
+      qdf$parameter[qdf$parameter=='none'] <- ''
       print(qdf)
       features$df <- qdf
       
@@ -101,18 +105,20 @@ function(input, output, session) {
   # input data for choices about datasets
   df <- eventReactive(input$update, {
     saveFeatures()
-    # updateQueryString(createQueryString())
+    updateQueryString(createQueryString())
     features$df
   })
   
   createQueryString <- function(){
+    formattedParams <- features$df$parameter
+    formattedParams[formattedParams == ''] <- "none"
     paste0("?",
            paste(
              paste0("id=", paste(features$df$id, collapse=',')),
              paste0("name=", paste(features$df$name, collapse=',')),
              paste0("color=", paste(substring(features$df$color,2), collapse=',')),
              paste0("cluster=", paste(features$df$cluster, collapse=',')),
-             paste0("parameter=", paste(features$df$parameter, collapse=',')),
+             paste0("parameter=", paste(formattedParams, collapse=',')),
           sep="&"))
   }
   
@@ -153,16 +159,6 @@ function(input, output, session) {
     })
     
   })
-  
-  ## take a snapshot
-  observeEvent(input$snap,{
-    ###proxy$mapId <- "proxMap"
-    mapshot(m, file = paste0(getwd(), "/mapPics/prox.png"))
-    print("hello")
-    session$sendCustomMessage(type = 'testmessage',
-                              message = 'Snapshot saved!')
-    }
-  )
   
   # variable used for on load one time actions
   onLoad <- TRUE
@@ -269,41 +265,43 @@ function(input, output, session) {
   })
   
   ## SHOWCASE FUNCTIONS
-  lightLink <- "https://data.boston.gov/dataset/52b0fdad-4037-460c-9c92-290f5774ab2b/resource/c2fcc1e3-c38f-44ad-a0cf-e5ea2a6585b5/download/streetlight-locations.csv"
-  neighborhoodLink <- "http://bostonopendata-boston.opendata.arcgis.com/datasets/3525b0ee6e6b427f9aab5d0a1d0a1a28_0.geojson"
-  
-  lightFile <- "./data/light.rds"
-  lightData <- NULL
-  
-  
-  if(file.exists(lightFile)){
-    lightData <- readRDS(lightFile)
-  }else{
-    lightData <- read.csv(lightLink)
-    saveRDS(lightData, lightFile)
-  }
-  
-  neighborhoodJson <- geojson_read(neighborhoodLink, what="sp")
-  
-  # make sure there are no N/A entries in data
-  complete <- lightData[complete.cases(lightData),]
-  
-  sp::coordinates(complete) <- ~Long+Lat
-  sp::proj4string(complete) <- sp::proj4string(neighborhoodJson)
-  pts.poly <- point.in.poly(complete, neighborhoodJson)
-  numLightsInNeighborhood <- tapply(pts.poly@data$OBJECTID, pts.poly@data$Name, FUN=length)
-  
-  neighborhoodJson@data$totalLights <- unname(numLightsInNeighborhood[neighborhoodJson@data$Name])
-  
-  neighborhoodJson@data$lightDensity <- neighborhoodJson@data$totalLights/neighborhoodJson@data$SqMiles
-  
-  pal <- colorNumeric(c("#0c0b2d", "white"), domain = neighborhoodJson@data$lightDensity)
   
   output$lightMap <- renderLeaflet({
+    lightLink <- "https://data.boston.gov/dataset/52b0fdad-4037-460c-9c92-290f5774ab2b/resource/c2fcc1e3-c38f-44ad-a0cf-e5ea2a6585b5/download/streetlight-locations.csv"
+    neighborhoodLink <- "http://bostonopendata-boston.opendata.arcgis.com/datasets/3525b0ee6e6b427f9aab5d0a1d0a1a28_0.geojson"
+    
+    lightFile <- "./data/light.rds"
+    lightData <- NULL
+    
+    
+    if(file.exists(lightFile)){
+      lightData <- readRDS(lightFile)
+    }else{
+      lightData <- read.csv(lightLink)
+      saveRDS(lightData, lightFile)
+    }
+    
+    neighborhoodJson <- geojson_read(neighborhoodLink, what="sp")
+    
+    # make sure there are no N/A entries in data
+    complete <- lightData[complete.cases(lightData),]
+    
+    sp::coordinates(complete) <- ~Long+Lat
+    sp::proj4string(complete) <- sp::proj4string(neighborhoodJson)
+    pts.poly <- point.in.poly(complete, neighborhoodJson)
+    numLightsInNeighborhood <- tapply(pts.poly@data$OBJECTID, pts.poly@data$Name, FUN=length)
+    
+    neighborhoodJson@data$totalLights <- unname(numLightsInNeighborhood[neighborhoodJson@data$Name])
+    
+    neighborhoodJson@data$lightDensity <- neighborhoodJson@data$totalLights/neighborhoodJson@data$SqMiles
+    
+    pal <- colorNumeric(c("#0c0b2d", "white"), domain = neighborhoodJson@data$lightDensity)
+    shinyjs::hide(id="loading4")
+    shinyjs::addClass(id="")
     leaflet() %>%
       addProviderTiles(providers$CartoDB.DarkMatterNoLabels) %>%
       # centering the view on a specific location (Boston)
-      setView(lng = -71.0589, lat = 42.3, zoom = 12) %>%
+      setView(lng = -71.0589, lat = 42.3, zoom = 11) %>%
       # the legend for the shading of the zones
       addLegend("bottomright", pal = pal, values = neighborhoodJson@data$lightDensity,
                 title = "Light Density In Neighborhoods",

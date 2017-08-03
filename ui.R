@@ -20,7 +20,6 @@ navbarPage("Analyze Boston Data Explorer", id="nav",
                     uiOutput("dataDropdowns"),
                     bsButton("add", "", icon=icon("plus")),
                     bsButton("update", "Update Datalayers", style="primary"),
-                    # bsButton("snap", "Save picture", style="primary"),
                     # hidden text to keep the output$moreThanOnePanel value bound and updating
                     div(textOutput("moreThanOnePanel"), style="color:white; height:0px")
                 
@@ -49,6 +48,7 @@ navbarPage("Analyze Boston Data Explorer", id="nav",
   
   ########## SHOWCASES ############
   tabPanel("Data Showcases",
+    useShinyjs(),
     fluidRow(
       column(6,
              # see this for docs: https://ebailey78.github.io/shinyBS/docs/Collapses.html#bsCollapse
@@ -68,7 +68,8 @@ navbarPage("Analyze Boston Data Explorer", id="nav",
                                div("insert stuff here!")
                ),
                bsCollapsePanel("Light Pollution in Boston",
-                               leafletOutput("lightMap", height="800")
+                               h2(id="loading4", "Loading..."),
+                               leafletOutput("lightMap", height="600")
                )
              )
       )
