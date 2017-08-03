@@ -325,7 +325,7 @@ shinyServer(function(input, output, session) {
     pal <- colorNumeric(c("#0c0b2d", "white"), domain = neighborhoodJson@data$lightDensity)
     shinyjs::hide(id="loading4")
     leaflet() %>%
-      addProviderTiles(providers$CartoDB.DarkMatterNoLabels) %>%
+      addProviderTiles(providers$Esri.WorldGrayCanvas) %>%
       # centering the view on a specific location (Boston)
       setView(lng = -71.0589, lat = 42.3, zoom = 11) %>%
       # the legend for the shading of the zones
@@ -355,7 +355,8 @@ shinyServer(function(input, output, session) {
     neighborhoodJson <- geojsonio::geojson_read(neighborhoodLink,what = "sp")
     
     leaflet()%>%
-      addProviderTiles(providers$CartoDB.Positron) %>%
+      addProviderTiles(providers$Esri.WorldGrayCanvas
+                       ) %>%
       setView(lng =-71.057083, lat = 42.3601, zoom = 11) %>%
       addPolygons(data = neighborhoodJson, weight = 2, color = "blue",
                   fill = TRUE, popup=~paste("<b>", Name),group = 'Neighborhoods')%>%
@@ -407,7 +408,7 @@ shinyServer(function(input, output, session) {
                               hubwaystations$Station)
     
     leaflet(height = 100)%>%
-      addProviderTiles(providers$CartoDB.Positron) %>%
+      addProviderTiles(providers$Esri.WorldGrayCanvas) %>%
       setView(lng =-71.057083, lat = 42.3601, zoom = 11) %>%
       addPolylines(data=bikelanes,group="Bike Network",weight=4)%>%
       addMarkers(data=hubwaypoints,popup=hubway_popuptext,group="Hubway Stations",clusterId = 'bikes',clusterOptions = markerClusterOptions())%>%
