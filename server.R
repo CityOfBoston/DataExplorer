@@ -8,8 +8,8 @@ library(spatialEco)
 # # By ordering by centile, we ensure that the (comparatively rare) SuperZIPs
 # # will be drawn last and thus be easier to see
 # zipdata <- zipdata[order(zipdata$centile),]
-
-function(input, output, session) { 
+port = 2590
+shinyServer(function(input, output, session) { 
 
   ## Interactive Map ###########################################
   m <- leaflet()
@@ -18,16 +18,17 @@ function(input, output, session) {
   nextId <- 2
   # counter for tracking which module has had its server function called
   minModuleCalled <- 0
-  
   # stored values of front end values
   # df stores the ids, names colors, and other values related to each dataset
   # modalId is the id of the dataset that we want to display on the advanced features modal
+  
   features <- reactiveValues(df=data.frame(id=c(1),name=c(""),
                              color=c("blue"), cluster=c(FALSE), parameter=c(""), stringsAsFactors=FALSE),
-                             modalId=0)
+                             modalId=0, urltext= "" )
   
   # Create the map
   output$map <- renderLeaflet({
+    features$urltext <- paste0('http://', session$clientData$url_hostname,':', session$clientData$url_port)
     m <<- leaflet() %>%
       # the styling of the map itself
       addProviderTiles(
@@ -38,23 +39,25 @@ function(input, output, session) {
       setView(lng = -71.0589, lat = 42.31, zoom = 12) %>%
       addCityBound()
       
+      
   })
-  
+
   checkQuery <- function(){
     # check query before rendering dropdowns, add data
     query <- getQueryString()
+    print(query)
     if(length(query) > 0){
-      qdf <- data.frame(id=strsplit(query$id, ",")[[1]],
-                        name=strsplit(query$name, ",")[[1]],
-                        color=paste0('#',strsplit(query$color, ",")[[1]]),
-                        cluster=(strsplit(query$cluster, ",")[[1]]=="TRUE"),
-                        parameter=strsplit(query$parameter, ",")[[1]],
+      qdf <- data.frame(id=strsplit(query$id, ";")[[1]],
+                        name=strsplit(query$name, ";")[[1]],
+                        color=paste0('#',strsplit(query$color, ";")[[1]]),
+                        cluster=(strsplit(query$cluster, ";")[[1]]=="TRUE"),
+                        parameter=strsplit(query$parameter, ";")[[1]],
                         stringsAsFactors=FALSE)
       qdf$parameter[qdf$parameter=='none'] <- ''
       print(qdf)
       features$df <- qdf
-      
       # adding data
+      print(paste( 'pre update', features$urltext))
       proxy <- leafletProxy("map")
       by(features$df, 1:nrow(features$df), function(row){
         spData <- data.frame()
@@ -77,6 +80,7 @@ function(input, output, session) {
       })
     }
   }
+  
   
   
   # utility function to save values into the reactive features
@@ -102,19 +106,46 @@ function(input, output, session) {
   df <- eventReactive(input$update, {
     saveFeatures()
     updateQueryString(createQueryString())
+    features$urltext <- paste0('http://', session$clientData$url_hostname,':', session$clientData$url_port, '/', createQueryString())
+    print(features$urltext)
+    print(URLencode(features$urltext, reserved = TRUE, repeated = FALSE))
     features$df
   })
+  observe({
+    print(features$urltext)
+    print(session$clientData$url_port)
+    output$sharables <- renderUI({
+      tags$div(
+        tags$div(HTML(paste( '<div id="fb-root"></div><script>(function(d, s, id) {
+                       var js, fjs = d.getElementsByTagName(s)[0];
+                       if (d.getElementById(id)) return;
+                       js = d.createElement(s); js.id = id;
+                       js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.10";
+                       fjs.parentNode.insertBefore(js, fjs);}(document, "script", "facebook-jssdk"));</script>
+                       <div class="fb-share-button" data-href=',features$urltext,' 
+                       data-layout="button" data-size="small" data-mobile-iframe="true"><a class="fb-xfbml-parse-ignore" target="_blank"
+        
+        href="https://www.facebook.com/sharer/sharer.php?u=',URLencode(features$urltext, reserved = TRUE, repeated = FALSE),'&amp;src=sdkpreparse">Share</a></div>'))),
+        tags$div(HTML(paste0('<a href="https://twitter.com/share" data-text="Check out this map I made with Analyze Boston!" data-url=', gsub(" ","+",features$urltext),' class="twitter-share-button" data-show-count="false">
+          Tweet</a><script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>'))))
+        #tags$div(HTML('<a data-pin-do="buttonBookmark" data-pin-save="true" href="https://www.pinterest.com/pin/create/button/" data-pin-url="https://www.google.com/maps">
+        #              </a> <script async defer src="//assets.pinterest.com/js/pinit.js"></script>')))
+    }
+    )
+    runjs("twttr.widgets.load()")
+  })
+  
   
   createQueryString <- function(){
     formattedParams <- features$df$parameter
     formattedParams[formattedParams == ''] <- "none"
     paste0("?",
            paste(
-             paste0("id=", paste(features$df$id, collapse=',')),
-             paste0("name=", paste(features$df$name, collapse=',')),
-             paste0("color=", paste(substring(features$df$color,2), collapse=',')),
-             paste0("cluster=", paste(features$df$cluster, collapse=',')),
-             paste0("parameter=", paste(formattedParams, collapse=',')),
+             paste0("id=", paste(features$df$id, collapse=';')),
+             paste0("name=", paste(features$df$name, collapse=';')),
+             paste0("color=", paste(substring(features$df$color,2), collapse=';')),
+             paste0("cluster=", paste(features$df$cluster, collapse=';')),
+             paste0("parameter=", paste(formattedParams, collapse=';')),
           sep="&"))
   }
   
@@ -395,3 +426,4 @@ function(input, output, session) {
   #Bike Map SERVER END
   
 }
+)

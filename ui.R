@@ -6,7 +6,8 @@ navbarPage("Analyze Boston Data Explorer", id="nav",
         # Include our custom CSS
         includeCSS("styles.css"),
         includeScript("gomap.js"),
-        includeScript("message-handler.js")
+        includeScript("widgets.js")
+        #includeScript("facebook-jssdk.js")
       ),
 
       leafletOutput("map", width="100%", height="100%"),
@@ -27,12 +28,10 @@ navbarPage("Analyze Boston Data Explorer", id="nav",
       absolutePanel(id = "share", class = "panel panel-default", fixed = TRUE,
                     draggable = FALSE, top = "auto", right = "auto", left = 5, bottom = 5,
                     width = "auto", height = "auto",
-                    fluidRow(
-                      column(4, HTML(facebookHtml), style='padding:5px;'),
-                      column(4, HTML(twitterHtml), style='padding:5px;'),
-                      column(4, HTML(pinterestHtml), style='padding:5px;')
-                    )
-      )
+                    h5("Share"),
+                    uiOutput("sharables")
+                    
+      )  
     )
   ),
 
