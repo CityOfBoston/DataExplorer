@@ -74,7 +74,3 @@ h1, h2, h3, h4 { font-weight: 400; }
   border: 1px solid rgba(0, 0, 0, .2);
   border-radius: 6px;
 }
-
-.panel-body .remove-padding {
-  padding: 0px 0px 15px 0px;
-}

@@ -293,7 +293,6 @@ function(input, output, session) {
     
     pal <- colorNumeric(c("#0c0b2d", "white"), domain = neighborhoodJson@data$lightDensity)
     shinyjs::hide(id="loading4")
-    shinyjs::addClass(id="")
     leaflet() %>%
       addProviderTiles(providers$CartoDB.DarkMatterNoLabels) %>%
       # centering the view on a specific location (Boston)
