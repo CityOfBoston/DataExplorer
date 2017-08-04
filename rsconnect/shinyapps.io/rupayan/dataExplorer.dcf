@@ -3,9 +3,9 @@ title: dataExplorer
 account: rupayan
 server: shinyapps.io
 appId: 199168
-bundleId: 926782
+bundleId: 927210
 url: https://rupayan.shinyapps.io/dataExplorer/
-when: 1501790598.43522
+when: 1501813977.88882
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: BERDOShowcase.R|BikeMap.R|Drive Showcase.R|map.html|mapmap.png|Schools Showcase.R|mapmap_files/htmlwidgets-0.9/htmlwidgets.js|mapmap_files/jquery-1.12.4/jquery.js|mapmap_files/jquery-1.12.4/jquery.min.js|mapmap_files/leaflet-0.7.7/leaflet-src.js|mapmap_files/leaflet-0.7.7/leaflet.css|mapmap_files/leaflet-0.7.7/leaflet.js|mapmap_files/leaflet-0.7.7/images/1px.png|mapmap_files/leaflet-0.7.7/images/layers-2x.png|mapmap_files/leaflet-0.7.7/images/layers.png|mapmap_files/leaflet-0.7.7/images/marker-icon-2x.png|mapmap_files/leaflet-0.7.7/images/marker-icon.png|mapmap_files/leaflet-0.7.7/images/marker-shadow.png|mapmap_files/leaflet-label-0.2.2/leaflet.label-src.js|mapmap_files/leaflet-label-0.2.2/leaflet.label.css|mapmap_files/leaflet-label-0.2.2/leaflet.label.js|mapmap_files/leaflet-label-0.2.2/images/death.png|mapmap_files/leafletfix-1.0.0/leafletfix.css|mapmap_files/Proj4Leaflet-0.7.2/proj4-compressed.js
+ignoredFiles: BERDOShowcase.R|BikeMap.R|Drive Showcase.R|Schools Showcase.R
