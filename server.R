@@ -281,7 +281,7 @@ shinyServer(function(input, output, session) {
     description <- as.character(allData[allData$name==dataName,'description'])
     tags$div(
       h3(dataName),
-      p(description),
+      HTML(description),
       hr(),
       h4("Advanced Features*"),
       checkboxInput(ns("cluster"), "Cluster Data", value=cluster),

@@ -41,9 +41,9 @@ addData <- function(leaflet, data, color="blue", cluster=FALSE, parameter=""){
       leaflet %>% addPolygons(data=data, color=color, weight=2, label=getLabel(data),group="polygons")
     }else{
       pal <- colorNumeric(c("white", color), domain = data[[parameter]])
-      leaflet %>% addPolygons(data=data, color=color, weight=2, label=getLabel(data),group="polygons",
+      leaflet %>% addPolygons(data=data, color=color, weight=1, label=getLabel(data),group="polygons",
                               popup=paste(paste0("<b>",parameter,":</b>"), data[[parameter]]),
-                              fillColor=pal(data[[parameter]]))
+                              fillColor=pal(data[[parameter]]), fillOpacity = 0.8)
     }
     
   }else if("lines" %in% slots){
