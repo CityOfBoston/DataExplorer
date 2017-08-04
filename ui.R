@@ -1,5 +1,5 @@
-navbarPage("Analyze Boston Data Explorer", id="nav",
-  tabPanel("Interactive map",
+navbarPage("Analyze Boston Data Explorer", id="nav", collapsible=TRUE,
+  tabPanel(title="Interactive Map", value="tab1",
     bsModal("optionsModal", "Options", "", uiOutput("optionsModalContent"), size="large"),
     div(class="outer",
       tags$head(
@@ -11,7 +11,6 @@ navbarPage("Analyze Boston Data Explorer", id="nav",
 
       leafletOutput("map", width="100%", height="100%"),
 
-      # Shiny versions prior to 0.11 should use class="modal" instead.
       absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
                     draggable = FALSE, top = 80, left = "auto", right = 20, bottom = "auto",
                     width = 330, height = "auto",
@@ -27,7 +26,6 @@ navbarPage("Analyze Boston Data Explorer", id="nav",
       absolutePanel(id = "share", class = "panel panel-default", fixed = TRUE,
                     draggable = FALSE, top = "auto", right = "auto", left = 5, bottom = 5,
                     width = "auto", height = "auto",
-                    h5("Share"),
                     uiOutput("sharables")
                     
       )  
@@ -47,13 +45,19 @@ navbarPage("Analyze Boston Data Explorer", id="nav",
   ########## SHOWCASES ############
   tabPanel("Data Showcases",
     useShinyjs(),
+    h4("Here are some data visualizations created from Analyze Boston datasets. Use them for inspiration to create your own maps on the Data Explorer!",
+       style="text-align: center;"),
+    h5(id="mobileMessage", "Unfortunately, the Data Explorer is only available on non-mobile devices. If you wish to use the other functionality of this website, please use a larger device.",
+       style="text-align: center;"),
+    hr(),
     fluidRow(
       column(6,
              # see this for docs: https://ebailey78.github.io/shinyBS/docs/Collapses.html#bsCollapse
-             bsCollapse(open="Bike Map",
-                 bsCollapsePanel("Bike Map",
-                                 fluidPage(
-                                   img(id="loading1", src="Resources/loading.gif"),
+             bsCollapse(open="Biking in Boston",
+                 bsCollapsePanel("Biking in Boston",
+                                 absolutePanel(top="200px", left="45%", right="auto", bottom="auto",
+                                               img(id="loading1", src="Resources/loading.gif")
+                                 ),
                                    leafletOutput("bikemap"),
                                    br(),
                                    p("This map helps people find routes to get around", 
@@ -67,46 +71,46 @@ navbarPage("Analyze Boston Data Explorer", id="nav",
                                       "is a City of Boston initiative that envisions safer, more accessible, and more sustainable transportation in Boston's future."
                                    ),
                                    fluidRow(
-                                     column(width = 4, fluidPage(tags$a(img(src="https://raw.githubusercontent.com/rneogy/DataExplorer/master/Resources/IB2030Logo.jpg", width = "100%"),href="https://imagine.boston.gov/wp-content/uploads/2017/07/Ib2030%20BOOK_Spreads--Transportation.pdf",target="_blank"))),
-                                     column(width = 4, fluidPage(tags$a(img(src="https://raw.githubusercontent.com/rneogy/DataExplorer/master/Resources/BostonBikesLogo.png", width = "100%"),href="http://goboston2030.org/en/",target="_blank"))),
-                                     column(width = 4, fluidPage(tags$a(img(src="https://raw.githubusercontent.com/rneogy/DataExplorer/master/Resources/HubwayLogo.png", width = "100%"),href="https://www.thehubway.com/",target="_blank")))
-                                   )
-                                 )
+                                     column(width = 4, class="logoCol", tags$a(img(src="Resources/IB2030Logo.jpg", class="logo"),href="https://imagine.boston.gov/wp-content/uploads/2017/07/Ib2030%20BOOK_Spreads--Transportation.pdf",target="_blank")),
+                                     column(width = 4, class="logoCol", tags$a(img(src="Resources/BostonBikesLogo.png", class="logo"),href="http://goboston2030.org/en/",target="_blank")),
+                                     column(width = 4, class="logoCol", tags$a(img(src="Resources/HubwayLogo.png", class="logo"),href="https://www.thehubway.com/",target="_blank")),
+                                     class="logoRow")
                  ),
-                 bsCollapsePanel("Driving in Boston",
-                         fluidPage(
-                             img(id="loading3", src="Resources/loading.gif"),
+                 bsCollapsePanel("Parking and Charging in Boston",
+                             absolutePanel(top="200px", left="45%", right="auto", bottom="auto",
+                                           img(id="loading3", src="Resources/loading.gif")
+                                           ),
                              leafletOutput("drivemap"),
+                             br(),
                              p("Utilizing the Emergency Parking and Charging Stations datasets from Boston we have produced an interactive visualization mapping out suitable parking tailored to an individuals needs."),
                              fluidRow(
-                                     column(width = 4, fluidPage(tags$a(img(src="https://raw.githubusercontent.com/rneogy/DataExplorer/master/Resources/IB2030Logo.jpg", width = "100%"),href="https://imagine.boston.gov/wp-content/uploads/2017/07/Ib2030%20BOOK_Spreads--Transportation.pdf",target="_blank"))),
-                                     column(width = 4, fluidPage(tags$a(img(src="https://raw.githubusercontent.com/rneogy/DataExplorer/master/Resources/VisionZeroLogo.PNG", width = "100%"),href="http://www.visionzeroboston.org/",target="_blank"))),
-                                     column(width = 4, fluidPage(tags$a(img(src="https://raw.githubusercontent.com/rneogy/DataExplorer/master/Resources/ZipCarLogo.png", width = "100%"),href="https://www.boston.gov/transportation/drive-boston",target="_blank")))
-                             )
-                         )
+                                     column(width = 4, class="logoCol", tags$a(img(src="Resources/IB2030Logo.jpg", class="logo"),href="https://imagine.boston.gov/wp-content/uploads/2017/07/Ib2030%20BOOK_Spreads--Transportation.pdf",target="_blank")),
+                                     column(width = 4, class="logoCol", tags$a(img(src="Resources/VisionZeroLogo.PNG", class="logo"),href="http://www.visionzeroboston.org/",target="_blank")),
+                                     column(width = 4, class="logoCol", tags$a(img(src="Resources/ZipCarLogo.png", class="logo"),href="https://www.boston.gov/transportation/drive-boston",target="_blank")),
+                                     class="logoRow")
                  )
              )
             
       ),
       column(6,
-             bsCollapse(open="Boston Education",
-               bsCollapsePanel("Boston Education",
-                               fluidPage(
-                                 img(id="loading2", src="Resources/loading.gif"),
+             bsCollapse(open="Boston Education Opportunities",
+               bsCollapsePanel("Boston Education Opportunities",
+                               absolutePanel(top="200px", left="45%", right="auto", bottom="auto",
+                                             img(id="loading2", src="Resources/loading.gif")
+                               ),
                                  leafletOutput("SCHOOLmap"),
                                  br(),
+                                 p("This map helps people visualize education across Boston to show where different public and private schools, and colleges/universities are located. Learn about the City of Boston's initiative to improve public education and expand early education below."),
                                  fluidRow(
-                                   fluidRow(
-                                      column(width = 1),column(width = 10,p("This map helps people visualize education across Boston to show where different public and private schools, and colleges/universities are located.Learn about the City of Boston's initiative to improve public education and expand early education below.")), column(width = 1)
-                                    ),
-                                    column(width = 4, fluidPage(tags$a(img(src="https://raw.githubusercontent.com/SamYoung20/dataPortal/6e0cc8ab3bedf1d5a42dbf0cbc4ce4558f858c2d/examples/Energy%20and%20Environment%20pics/unnamed.jpg", width = "100%"),href="https://imagine.boston.gov/wp-content/uploads/2017/07/Ib2030%20BOOK_Spreads--Energy%20and%20Environment.pdf",target="_blank"))),
-                                    column(width = 4, fluidPage(tags$a(img(src="https://pbs.twimg.com/media/CroEOLKWAAAnhhf.jpg:large", width = "100%"),href="https://www.bostonpublicschools.org/buildbps",target="_blank"))),
-                                    column(width = 4, fluidPage(tags$a(img(src="https://www.barrfoundation.org/assets/logo-821db212e468b22f9c4e0c3774d6214de98e41745c32d26bc3075a504f43f531.svg", width = "100%"),href="https://www.barrfoundation.org/partners/boston-k1ds",target="_blank")))
-                                 )
-                               )
+                                    column(width = 4, class="logoCol", tags$a(img(src="Resources/IB2030Logo.jpg", class="logo"),href="https://imagine.boston.gov/wp-content/uploads/2017/07/Ib2030%20BOOK_Spreads--Energy%20and%20Environment.pdf",target="_blank")),
+                                    column(width = 4, class="logoCol", tags$a(img(src="Resources/BuildBPSLogo.jpg", class="logo"),href="https://www.bostonpublicschools.org/buildbps",target="_blank")),
+                                    column(width = 4, class="logoCol", tags$a(img(src="Resources/BarrFoundationLogo.svg", class="logo"),href="https://www.barrfoundation.org/partners/boston-k1ds",target="_blank")),
+                                 class="logoRow")
                ),
-               bsCollapsePanel("Street Lamps in Boston",
-                               img(id="loading4", src="Resources/loading.gif"),
+               bsCollapsePanel("Street Lamps in Boston Neighborhoods",
+                               absolutePanel(top="200px", left="45%", right="auto", bottom="auto",
+                                             img(id="loading4", src="Resources/loading.gif")
+                               ),
                                leafletOutput("lightMap"),
                                br(),
                                p("This map takes the ",

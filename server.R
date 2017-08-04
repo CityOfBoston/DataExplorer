@@ -9,9 +9,22 @@ library(spatialEco)
 # # will be drawn last and thus be easier to see
 # zipdata <- zipdata[order(zipdata$centile),]
 port = 2590
-shinyServer(function(input, output, session) { 
+shinyServer(function(input, output, session) {
+  
+  # Custom view if on mobile (data explorer isn't mobile friendly!)
+  observe({
+    if(!is.null(input$GetScreenWidth)){
+      if(input$GetScreenWidth < 500){
+        print("mobile!")
+        updateNavbarPage(session, "nav", "Data Showcases")
+        shinyjs::hide(selector = ".navbar-toggle")
+      }else{
+        shinyjs::hide("mobileMessage")
+      }
+    }
+  })
 
-  ## Interactive Map ###########################################
+  ## DATA EXPLORER ###########################################
   m <- leaflet()
   
   # the id of the panels
@@ -300,7 +313,7 @@ shinyServer(function(input, output, session) {
     })
   }
   
-  ## DATA TAB FUNCTIONS
+  ## DATA TAB FUNCTIONS #########################
   
   # renders the DT data table
   output$datatable <- DT::renderDataTable({
@@ -316,7 +329,7 @@ shinyServer(function(input, output, session) {
     )
   })
   
-  ## SHOWCASE FUNCTIONS
+  ## SHOWCASE FUNCTIONS ##########################
   
   # LIGHT MAP START
   output$lightMap <- renderLeaflet({
@@ -355,10 +368,10 @@ shinyServer(function(input, output, session) {
     leaflet() %>%
       addProviderTiles(providers$Esri.WorldGrayCanvas) %>%
       # centering the view on a specific location (Boston)
-      setView(lng = -71.0589, lat = 42.29, zoom = 11) %>%
+      setView(lng = -71.0589, lat = 42.32, zoom = 11) %>%
       # the legend for the shading of the zones
       addLegend("bottomright", pal = pal, values = neighborhoodJson@data$lightDensity,
-                title = "Light Density In Neighborhoods",
+                title = "Light Density",
                 opacity = 1) %>%
       # adding the zones
       addPolygons(data = neighborhoodJson, weight = 0,
