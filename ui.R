@@ -1,6 +1,10 @@
 navbarPage("Analyze Boston Data Explorer", id="nav", collapsible=TRUE,
   tabPanel(title="Interactive Map", value="tab1",
     bsModal("optionsModal", "Options", "", uiOutput("optionsModalContent"), size="large"),
+    tags$html(HTML('<meta property="og:url"               content="https://rupayan.shinyapps.io/dataExplorer/" />
+              <meta property="og:title"              content="Analyze Boston Data Explorer" />
+              <meta property="og:description"        content="Visualize public city data with the click of a button!" />
+              <meta property="og:image"              content="https://rupayan.shinyapps.io/dataExplorer/COB_B_Blue-01.png" />')),
     div(class="outer",
       tags$head(
         # Include our custom CSS

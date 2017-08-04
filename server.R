@@ -37,11 +37,10 @@ shinyServer(function(input, output, session) {
   
   features <- reactiveValues(df=data.frame(id=c(1),name=c(""),
                              color=c("blue"), cluster=c(FALSE), parameter=c(""), stringsAsFactors=FALSE),
-                             modalId=0, urltext= "" )
+                             modalId=0, urltext=baseURL)
   
   # Create the map
   output$map <- renderLeaflet({
-    features$urltext <- paste0('http://', session$clientData$url_hostname,':', session$clientData$url_port)
     m <<- leaflet() %>%
       # the styling of the map itself
       addProviderTiles(
@@ -119,57 +118,41 @@ shinyServer(function(input, output, session) {
   df <- eventReactive(input$update, {
     saveFeatures()
     updateQueryString(createQueryString())
-    features$urltext <- paste0('http://', session$clientData$url_hostname,':', session$clientData$url_port, '/', createQueryString())
-    print(features$urltext)
-    print(URLencode(features$urltext, reserved = TRUE, repeated = FALSE))
+    features$urltext <- paste0(baseURL, createQueryString())
     features$df
   })
+  
+  
   observe({
     print(features$urltext)
-    print(session$clientData$url_port)
-    output$sharables <- renderUI({
-      fluidRow(column(6, HTML(paste0( '
-                                              <div id="fb-root"></div><script>(function(d, s, id) {
-                                              var js, fjs = d.getElementsByTagName(s)[0];
-                                              if (d.getElementById(id)) return;
-                                              js = d.createElement(s); js.id = id;
-                                              js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.10";
-                                              fjs.parentNode.insertBefore(js, fjs);}(document, "script", "facebook-jssdk"));</script>
-                                              <div class="fb-share-button" data-href=',features$urltext,' 
-                        data-layout="button" data-size="small" data-mobile-iframe="true"><a class="fb-xfbml-parse-ignore" target="_blank"
-                                           
-                                           href="https://www.facebook.com/sharer/sharer.php?u=',URLencode(features$urltext, reserved = TRUE, repeated = FALSE),'&amp;src=sdkpreparse">Share</a></div>')),style = 'padding:5px;'),
-         column(6,HTML(paste0('<a href="https://twitter.com/share" data-text="Check out this map I made with Analyze Boston!" data-url=', gsub(" ","+",features$urltext),' class="twitter-share-button" data-show-count="false">
-                        Tweet</a><script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>')),style = 'padding:5px;'))
-    #  # tags$div(
-    # #    tags$div(HTML(paste( '
-    #                     
-    #                         <title>Boston Data Explorer</title>
-    #                          <!-- You can use Open Graph tags to customize link previews.
-    #                          Learn more: https://developers.facebook.com/docs/sharing/webmasters -->
-    #                          <meta property="og:url"           content="http://www.your-domain.com/your-page.html" />
-    #                          <meta property="og:type"          content="website" />
-    #                          <meta property="og:title"         content="Your Website Title" />
-    #                          <meta property="og:description"   content="Use The Boston Data Explorer to learn more about" />
-    #                          <meta property="og:image"         content="http://www.your-domain.com/path/image.jpg" />
-    #                          
-    # 
-    # 
-    #                   <div id="fb-root"></div><script>(function(d, s, id) {
-    #                    var js, fjs = d.getElementsByTagName(s)[0];
-    #                    if (d.getElementById(id)) return;
-    #                    js = d.createElement(s); js.id = id;
-    #                    js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.10";
-    #                    fjs.parentNode.insertBefore(js, fjs);}(document, "script", "facebook-jssdk"));</script>
-    #                    <div class="fb-share-button" data-href=',features$urltext,' 
-    #                    data-layout="button" data-size="small" data-mobile-iframe="true"><a class="fb-xfbml-parse-ignore" target="_blank"
-    #     
-    #     href="https://www.facebook.com/sharer/sharer.php?u=',URLencode(features$urltext, reserved = TRUE, repeated = FALSE),'&amp;src=sdkpreparse">Share</a></div>'))),
-    #     tags$div(HTML(paste0('<a href="https://twitter.com/share" data-text="Check out this map I made with Analyze Boston!" data-url=', gsub(" ","+",features$urltext),' class="twitter-share-button" data-show-count="false">
-    #       Tweet</a><script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>'))))
-    #   
-    }
+    shinyjs::onclick("facebookIcon",
+                     runjs(
+                       paste0("window.open('https://www.facebook.com/sharer/sharer.php?u=", URLencode(features$urltext, reserved = TRUE, repeated = FALSE), "', '',
+                            'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=300,width=600');")
+                     )
     )
+    output$sharables <- renderUI({
+      fluidRow(
+        column(6, 
+                  bsButton("facebookIcon", "Share",
+                      icon=icon("facebook-official"),
+                      style="primary",
+                      size="extra-small"
+                    )
+               ),
+              # column(6, HTML(paste0('        <div id="fb-root"></div>
+              #                                 <script>(function(d, s, id) {
+              #                                 var js, fjs = d.getElementsByTagName(s)[0];
+              #                                 if (d.getElementById(id)) return;
+              #                                 js = d.createElement(s); js.id = id;
+              #                                 js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.10";
+              #                                 fjs.parentNode.insertBefore(js, fjs);}(document, "script", "facebook-jssdk"));</script>
+              #                                 <div class="fb-share-button" data-href=',features$urltext,' 
+              #           data-layout="button" data-size="small" data-mobile-iframe="true"><a class="fb-xfbml-parse-ignore" target="_blank"
+              #                              href="https://www.facebook.com/sharer/sharer.php?u=',URLencode(features$urltext, reserved = TRUE, repeated = FALSE),'&amp;src=sdkpreparse">Share</a></div>')),style = 'padding:5px;'),
+         column(6,HTML(paste0('<a href="https://twitter.com/share" data-text="Check out this map I made with Analyze Boston!" data-url=', gsub(" ","+",features$urltext),' class="twitter-share-button" data-show-count="false">
+                        Tweet</a><script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>')),style = 'padding:0 5px 0 5px;'))
+    })
     runjs("twttr.widgets.load()")
   })
   
