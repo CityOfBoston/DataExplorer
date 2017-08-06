@@ -59,8 +59,8 @@ ui = fluidPage(
                        ),
               absolutePanel(
                 id = "controls", class = "panel panel-default", fixed = TRUE,
-                draggable = FALSE, top = 80, left = "auto", right = 20, bottom = "auto",
-                width = 330, height = "auto",
+                draggable = FALSE, top = 40, left = "auto", right = 20, bottom = "auto",
+                width = 250, height = "auto",
                 selectInput("BERDODataLayer",label=h5("Choose a dataset:"),names(labels))
               )
              )
