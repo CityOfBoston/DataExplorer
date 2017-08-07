@@ -18,10 +18,10 @@ library(RColorBrewer)
 BERDO <- geojsonio::geojson_read("http://bostonopendata-boston.opendata.arcgis.com/datasets/82595a1b793a49c2bce7d61b751bdca5_2.geojson", what = "sp")
 
 BERDO$EnergyStar_Score <- ifelse(is.na(BERDO$EnergyStar_Score),-14354, BERDO$EnergyStar_Score)  #-14354 i just a place holder. Map will not plot NA values
-binScore <- c(seq(0,100,20)) # bind bind it with INF
+binScore <- c(seq(0,100,20),max(BERDO$EnergyStar_Score,na.rm=TRUE)) # bind bind it with INF
 palScore <- colorBin("YlGn", domain = BERDO$EnergyStar_Score, bins = binScore)
-colorScore <- c("gray",brewer.pal(5,"YlGn"))
-textScore <- c("NA","0 - 20","20 - 40","40 - 60", "60 - 80", "80 - 100")
+colorScore <- c("gray",brewer.pal(6,"YlGn"))
+textScore <- c("NA","0 - 20","20 - 40","40 - 60", "60 - 80", "80 - 100",">100")
 
 #BERDO$Site_Energy_Use <- ifelse(is.na(BERDO$Site_Energy_Use),-14354, BERDO$Site_Energy_Use)
 Energyuse_UpperBound<-quantile(BERDO$Site_Energy_Use,probs=.97,na.rm=TRUE)
