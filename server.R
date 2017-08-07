@@ -50,50 +50,7 @@ shinyServer(function(input, output, session) {
       # centering the view on a specific location (Boston)
       setView(lng = -71.0589, lat = 42.31, zoom = 12) %>%
       addCityBound()
-      
-      
   })
-
-  checkQuery <- function(){
-    # check query before rendering dropdowns, add data
-    query <- getQueryString()
-    print(query)
-    if(length(query) > 0){
-      qdf <- data.frame(id=strsplit(query$id, ";")[[1]],
-                        name=strsplit(query$name, ";")[[1]],
-                        color=paste0('#',strsplit(query$color, ";")[[1]]),
-                        cluster=(strsplit(query$cluster, ";")[[1]]=="TRUE"),
-                        parameter=strsplit(query$parameter, ";")[[1]],
-                        stringsAsFactors=FALSE)
-      qdf$parameter[qdf$parameter=='none'] <- ''
-      print(qdf)
-      features$df <- qdf
-      # adding data
-      print(paste( 'pre update', features$urltext))
-      proxy <- leafletProxy("map")
-      by(features$df, 1:nrow(features$df), function(row){
-        spData <- data.frame()
-        name <- as.character(row$name)
-        # if data is already downloaded, no need to download again
-        if(name %in% names(downloadedData)){
-          spData <- downloadedData[[name]]
-        }else{
-          link <- as.character(data[name])
-          spData <- geojson_read(link, what="sp")
-          downloadedData[[name]] <<- spData
-        }
-        # add/remove layers in a specific order to have markers/lines on top of polygons
-        proxy %>%
-          hideGroup("markers") %>%
-          hideGroup("lines") %>%
-          addData(data=spData, color=as.character(row$color), cluster=row$cluster, parameter=row$parameter) %>%
-          showGroup("lines") %>%
-          showGroup("markers")
-      })
-    }
-  }
-  
-  
   
   # utility function to save values into the reactive features
   saveFeatures <- function(){
@@ -122,7 +79,7 @@ shinyServer(function(input, output, session) {
     features$df
   })
   
-  
+  # share button rendering
   observe({
     print(features$urltext)
     shinyjs::onclick("facebookIcon",
@@ -140,23 +97,51 @@ shinyServer(function(input, output, session) {
                       size="extra-small"
                     )
                ),
-              # column(6, HTML(paste0('        <div id="fb-root"></div>
-              #                                 <script>(function(d, s, id) {
-              #                                 var js, fjs = d.getElementsByTagName(s)[0];
-              #                                 if (d.getElementById(id)) return;
-              #                                 js = d.createElement(s); js.id = id;
-              #                                 js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.10";
-              #                                 fjs.parentNode.insertBefore(js, fjs);}(document, "script", "facebook-jssdk"));</script>
-              #                                 <div class="fb-share-button" data-href=',features$urltext,' 
-              #           data-layout="button" data-size="small" data-mobile-iframe="true"><a class="fb-xfbml-parse-ignore" target="_blank"
-              #                              href="https://www.facebook.com/sharer/sharer.php?u=',URLencode(features$urltext, reserved = TRUE, repeated = FALSE),'&amp;src=sdkpreparse">Share</a></div>')),style = 'padding:5px;'),
          column(6,HTML(paste0('<a href="https://twitter.com/share" data-text="Check out this map I made with Analyze Boston!" data-url=', gsub(" ","+",features$urltext),' class="twitter-share-button" data-show-count="false">
                         Tweet</a><script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>')),style = 'padding:0 5px 0 5px;'))
     })
     runjs("twttr.widgets.load()")
   })
   
+  # updates the features data frame with the correct values based on the query and renders the features
+  checkQuery <- function(){
+    # check query before rendering dropdowns, add data
+    query <- getQueryString()
+    if(length(query) > 0){
+      qdf <- data.frame(id=strsplit(query$id, ";")[[1]],
+                        name=strsplit(query$name, ";")[[1]],
+                        color=paste0('#',strsplit(query$color, ";")[[1]]),
+                        cluster=(strsplit(query$cluster, ";")[[1]]=="TRUE"),
+                        parameter=strsplit(query$parameter, ";")[[1]],
+                        stringsAsFactors=FALSE)
+      qdf$parameter[qdf$parameter=='none'] <- ''
+      nextId <<- max(as.numeric(qdf$id)) + 1
+      features$df <- qdf
+      # adding data
+      proxy <- leafletProxy("map")
+      by(features$df, 1:nrow(features$df), function(row){
+        spData <- data.frame()
+        name <- as.character(row$name)
+        # if data is already downloaded, no need to download again
+        if(name %in% names(downloadedData)){
+          spData <- downloadedData[[name]]
+        }else{
+          link <- as.character(data[name])
+          spData <- geojson_read(link, what="sp")
+          downloadedData[[name]] <<- spData
+        }
+        # add/remove layers in a specific order to have markers/lines on top of polygons
+        proxy %>%
+          hideGroup("markers") %>%
+          hideGroup("lines") %>%
+          addData(data=spData, color=as.character(row$color), cluster=row$cluster, parameter=row$parameter) %>%
+          showGroup("lines") %>%
+          showGroup("markers")
+      })
+    }
+  }
   
+  # creates a query string based on the features on the map
   createQueryString <- function(){
     formattedParams <- features$df$parameter
     formattedParams[formattedParams == ''] <- "none"
@@ -449,7 +434,17 @@ shinyServer(function(input, output, session) {
   
   #BERDO SERVER START
   output$BERDOmap <- renderLeaflet({
-    BERDO <- geojsonio::geojson_read("http://bostonopendata-boston.opendata.arcgis.com/datasets/82595a1b793a49c2bce7d61b751bdca5_2.geojson", what = "sp")
+    BERDOlink <- "http://bostonopendata-boston.opendata.arcgis.com/datasets/82595a1b793a49c2bce7d61b751bdca5_2.geojson"
+    
+    BERDOFile <- "./data/berdo.rds"
+    BERDO <- NULL
+    
+    if(file.exists(BERDOFile)){
+      BERDO <- readRDS(BERDOFile)
+    }else{
+      BERDO <- geojsonio::geojson_read(BERDOlink, what = "sp")
+      saveRDS(BERDO, BERDOFile)
+    }
     
     binScore <- c(seq(0,100,20)) # bind bind it with INF
     palScore <- colorBin("YlGn", domain = BERDO$EnergyStar_Score, bins = binScore)

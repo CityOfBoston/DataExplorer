@@ -1,113 +1,28 @@
-# Project Title
+# Analyze Boston Data Explorer
 
-One Paragraph of project description goes here
+This application utilizes the public data sets on Analyze Boston to provide a web interface for creating interactive map data visualizations based off of any of the geospatial data sets on Analyze Boston. It includes basic functionality such as plotting point, line, or polygon data on a map, and choosing a color for each data layer. Advanced features include clustering point data or scaling point or polygon data based on a data parameter. It includes a data viewer which shows the data in a table view. Finally, it has a few data showcases which present premade interactive maps that highlight some of the possibilities of the Data Explorer. They also connect users with Boston resources such as the Imagine Boston plan. 
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+In order to run this project, you must install [R](https://cran.r-project.org/) on your machine. You should also install [RStudio](https://www.rstudio.com/products/rstudio/download/), as it is the best IDE for presenting R apps, especially R Shiny applications.
 
-### Prerequisites
+Clone this repository into a chosen folder, and open the project in RStudio. Before running the application, the required libraries must be installed. See the top of the main files (`ui.r`, `global.r`, `server.r`) to see which libraries must be installed. With any of these files open, you can click "Run App" in RStudio. This will start the application on your local machine.
 
-What things you need to install the software and how to install them
+## Project Structure
 
-```
-Give examples
-```
-
-### Installing
-
-A step by step series of examples that tell you have to get a development env running
-
-Say what the step will be
-
-```
-Give the example
-```
-
-And repeat
-
-```
-until finished
-```
-
-End with an example of getting some data out of the system or using it for a little demo
-
-## Running the tests
-
-Explain how to run the automated tests for this system
-
-### Break down into end to end tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
-
-### And coding style tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
+The application has the basic Shiny application structure: `ui.r` contains the front-end structure of the application. From the navigation bar to the social media buttons, elements shown on the web page are (for the most part) described in this file. `server.r` contains the logic that controls the application. Data layers are added, or inputs are made reactive, all through this file. Note that the website has three main views: Interactive Map, Data Viewer, and Data Showcases. Because of this, both `ui.r` and `server.r` are segmented between these three views. Finally, there is `global.r`, which represents the data and utility functions that might be required in both UI and server, or might be required across multiple Shiny sessions.
 
 ## Deployment
 
-Add additional notes about how to deploy this on a live system
-
-## Built With
-
-* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
-* [Maven](https://maven.apache.org/) - Dependency Management
-* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
-
-## Contributing
-
-Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
-
-## Versioning
-
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags). 
+Currently, this application is live on a free [shinyapps website](https://rupayan.shinyapps.io/dataExplorer/). Luckily, RStudio makes deploying Shiny applications very simple. Just a click of the blue deploy button in the application lets a user deploy any application to their linked account. Of course, the account that the current application is on will probably soon be deprecated.
 
 ## Authors
 
-* **Billie Thompson** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
-
-See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
+**GE's Boston Civic Fellows** created this application in the summer of 2017. The application was created in a collaboration between the City of Boston and General Electric, as a part of the company's move of its headquarters to Boston.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+
 
 ## Acknowledgments
 
-* Hat tip to anyone who's code was used
-* Inspiration
-* etc
-
-
-
-
-
-
-
-
-
-
-
-
-
-# SuperZIP demo
-
-See a version of it live at http://shiny.rstudio.com/gallery/superzip-example.html
-
-You can run this demo with:
-```
-if (!require(devtools))
-  install.packages("devtools")
-devtools::install_github("rstudio/leaflet")
-shiny::runGitHub("rstudio/shiny-examples", subdir="063-superzip-example")
-```
-
-Data compiled for _Coming Apart: The State of White America, 1960–2010_ by Charles Murray (Crown Forum, 2012). This app was inspired by the Washington Post's interactive feature _[Washington: A world apart](http://www.washingtonpost.com/sf/local/2013/11/09/washington-a-world-apart/)_.

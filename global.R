@@ -7,6 +7,7 @@ library(DT)
 library(shinyjs)
 
 baseURL <- "https://rupayan.shinyapps.io/dataExplorer/"
+# baseURL <- "http://127.0.0.1:4088/"
 
 # the geospatial datasets from analyze boston (maxes at 100 data sets for now, can remove if desired)
 datasets <- fromJSON(readLines("https://data.boston.gov/api/3/action/package_search?q=geojson&rows=100"))$result$results
