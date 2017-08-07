@@ -80,17 +80,21 @@ navbarPage("Analyze Boston Data Explorer", id="nav", collapsible=TRUE,
                                      column(width = 4, class="logoCol", tags$a(img(src="Resources/HubwayLogo.png", class="logo"),href="https://www.thehubway.com/",target="_blank")),
                                      class="logoRow")
                  ),
-                 bsCollapsePanel("Parking and Charging in Boston",
+                 bsCollapsePanel("Building Energy Reporting Showcase",
                              absolutePanel(top="200px", left="45%", right="auto", bottom="auto",
                                            img(id="loading3", src="Resources/loading.gif")
                                            ),
-                             leafletOutput("drivemap"),
+                             leafletOutput("BERDOmap"),
+                             selectInput("BERDODataLayer",label=h5("Choose a dataset:"),names(BERDOlabels)),
                              br(),
-                             p("Utilizing the Emergency Parking and Charging Stations datasets from Boston we have produced an interactive visualization mapping out suitable parking tailored to an individuals needs."),
+                             p("The",
+                                a("Building Energy Reporting and Disclosure Ordinance (BERDO)",href="https://www.boston.gov/environment-and-energy/building-energy-reporting-and-disclosure-ordinance"), "reports annual energy usage of buildings in Boston. We have displayed this data in a gradient.",
+                                "Explore the energy star score, energy usage, and greenhouse gas emissions of buildings throughout the city by clicking on the map. See how ratings and emissions vary by building size, type, and location."
+                             ),
                              fluidRow(
-                                     column(width = 4, class="logoCol", tags$a(img(src="Resources/IB2030Logo.jpg", class="logo"),href="https://imagine.boston.gov/wp-content/uploads/2017/07/Ib2030%20BOOK_Spreads--Transportation.pdf",target="_blank")),
-                                     column(width = 4, class="logoCol", tags$a(img(src="Resources/VisionZeroLogo.PNG", class="logo"),href="http://www.visionzeroboston.org/",target="_blank")),
-                                     column(width = 4, class="logoCol", tags$a(img(src="Resources/ZipCarLogo.png", class="logo"),href="https://www.boston.gov/transportation/drive-boston",target="_blank")),
+                                     column(width = 4, class="logoCol", tags$a(img(src="https://raw.githubusercontent.com/SamYoung20/dataPortal/6e0cc8ab3bedf1d5a42dbf0cbc4ce4558f858c2d/examples/Energy%20and%20Environment%20pics/unnamed.jpg", class="logo"),href="https://imagine.boston.gov/wp-content/uploads/2017/07/Ib2030%20BOOK_Spreads--Energy%20and%20Environment.pdf",target="_blank")),
+                                     column(width = 4, class="logoCol", tags$a(img(src="https://raw.githubusercontent.com/SamYoung20/dataPortal/6e0cc8ab3bedf1d5a42dbf0cbc4ce4558f858c2d/examples/Energy%20and%20Environment%20pics/unnamed%20(1).jpg", class="logo"),href="http://www.greenribboncommission.org/",target="_blank")),
+                                     column(width = 4, class="logoCol", tags$a(img(src="https://raw.githubusercontent.com/SamYoung20/dataPortal/6e0cc8ab3bedf1d5a42dbf0cbc4ce4558f858c2d/examples/Energy%20and%20Environment%20pics/unnamed.png", class="logo"),href="http://www.greenovateboston.org/",target="_blank")),
                                      class="logoRow")
                  )
              )

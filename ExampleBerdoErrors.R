@@ -5,7 +5,6 @@ library(dplyr)
 library(htmltools)
 library(jsonlite)
 library(geojsonio)
-library(leaflet.extras)
 library(shinyjs)
 library(V8)
 library(RCurl)
@@ -17,7 +16,6 @@ library(RColorBrewer)
 
 BERDO <- geojsonio::geojson_read("http://bostonopendata-boston.opendata.arcgis.com/datasets/82595a1b793a49c2bce7d61b751bdca5_2.geojson", what = "sp")
 
-#BERDO$EnergyStar_Score <- ifelse(is.na(BERDO$EnergyStar_Score),-14354, BERDO$EnergyStar_Score)  #-14354 i just a place holder. Map will not plot NA values
 binScore <- c(seq(0,100,20)) # bind bind it with INF
 palScore <- colorBin("YlGn", domain = BERDO$EnergyStar_Score, bins = binScore)
 colorScore <- c("gray",brewer.pal(6,"YlGn"))
@@ -52,10 +50,9 @@ ui = fluidPage(
     )
   ),
   fluidRow(
-    box(width = 3,solidHeader = TRUE, collapsible = FALSE, status='primary', fluidPage(tags$a(img(src="https://raw.githubusercontent.com/SamYoung20/dataPortal/6e0cc8ab3bedf1d5a42dbf0cbc4ce4558f858c2d/examples/Energy%20and%20Environment%20pics/unnamed.jpg", width = "100%"),href="https://imagine.boston.gov/wp-content/uploads/2017/07/Ib2030%20BOOK_Spreads--Energy%20and%20Environment.pdf",target="_blank"))),
-    box(width = 3,solidHeader = TRUE, collapsible = FALSE, status='primary', fluidPage(tags$a(img(src="https://raw.githubusercontent.com/SamYoung20/dataPortal/6e0cc8ab3bedf1d5a42dbf0cbc4ce4558f858c2d/examples/Energy%20and%20Environment%20pics/unnamed%20(2).jpg", width = "100%"),href="http://climatechangedata.boston.gov/",target="_blank"))),
-    box(width = 3,solidHeader = TRUE, collapsible = FALSE, status='primary', fluidPage(tags$a(img(src="https://raw.githubusercontent.com/SamYoung20/dataPortal/6e0cc8ab3bedf1d5a42dbf0cbc4ce4558f858c2d/examples/Energy%20and%20Environment%20pics/unnamed%20(1).jpg", width = "100%"),href="http://www.greenribboncommission.org/",target="_blank"))),
-    box(width = 3,solidHeader = TRUE, collapsible = FALSE, status='primary', fluidPage(tags$a(img(src="https://raw.githubusercontent.com/SamYoung20/dataPortal/6e0cc8ab3bedf1d5a42dbf0cbc4ce4558f858c2d/examples/Energy%20and%20Environment%20pics/unnamed.png", width = "100%"),href="http://www.greenovateboston.org/",target="_blank")))
+    box(width = 4,solidHeader = TRUE, collapsible = FALSE, status='primary', fluidPage(tags$a(img(src="https://raw.githubusercontent.com/SamYoung20/dataPortal/6e0cc8ab3bedf1d5a42dbf0cbc4ce4558f858c2d/examples/Energy%20and%20Environment%20pics/unnamed.jpg", width = "100%"),href="https://imagine.boston.gov/wp-content/uploads/2017/07/Ib2030%20BOOK_Spreads--Energy%20and%20Environment.pdf",target="_blank"))),
+    box(width = 4,solidHeader = TRUE, collapsible = FALSE, status='primary', fluidPage(tags$a(img(src="https://raw.githubusercontent.com/SamYoung20/dataPortal/6e0cc8ab3bedf1d5a42dbf0cbc4ce4558f858c2d/examples/Energy%20and%20Environment%20pics/unnamed%20(1).jpg", width = "100%"),href="http://www.greenribboncommission.org/",target="_blank"))),
+    box(width = 4,solidHeader = TRUE, collapsible = FALSE, status='primary', fluidPage(tags$a(img(src="https://raw.githubusercontent.com/SamYoung20/dataPortal/6e0cc8ab3bedf1d5a42dbf0cbc4ce4558f858c2d/examples/Energy%20and%20Environment%20pics/unnamed.png", width = "100%"),href="http://www.greenovateboston.org/",target="_blank")))
   ),
   absolutePanel(
     id = "controls", class = "panel panel-default", fixed = TRUE,
@@ -69,9 +66,6 @@ ui = fluidPage(
 server = function(input, output){
   #BERDO SERVER START
   output$BERDOmap <- renderLeaflet({
-    print(input$BERDODataLayer)
-    print(labels[input$BERDODataLayer])
-    print(BERDO[[labels[input$BERDODataLayer]]])
     leaflet()%>%
       addProviderTiles(providers$Esri.WorldGrayCanvas) %>%
       setView(lng =-71.057083, lat = 42.3601, zoom = 15) %>%
@@ -91,8 +85,14 @@ server = function(input, output){
                     input$BERDODataLayer,
                     ":"
                     ,
-                    ifelse(BERDO[[labels[input$BERDODataLayer]]]== -14354,"NA", prettyNum(BERDO[[labels[input$BERDODataLayer]]], big.mark=",")),  #Replaces -14354 with NA in popup
-                    if(BERDO[[labels[input$BERDODataLayer]]]== -14354){getUnits(input$BERDODataLayer)}
+                    prettyNum(BERDO[[labels[input$BERDODataLayer]]], big.mark=","), 
+                    lapply(BERDO[[labels[input$BERDODataLayer]]], function(i){
+                      if(is.na(i)){
+                        ""
+                      }else{
+                        getUnits(input$BERDODataLayer)
+                      }
+                    })
         )
       )%>%
       addEasyButton(easyButton(
@@ -164,7 +164,9 @@ server = function(input, output){
       "kBTU/sq.ft."
     } else if(dataName=="GHG Emissions"){
       "Metrics Tons of CO2"
-    }  
+    }else{
+      ""
+    }
   }
   
 }

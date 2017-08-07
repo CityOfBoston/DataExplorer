@@ -13,6 +13,8 @@ datasets <- fromJSON(readLines("https://data.boston.gov/api/3/action/package_sea
 # boston boundary
 bostonLink<-"http://bostonopendata-boston.opendata.arcgis.com/datasets/142500a77e2a4dbeb94a86f7e0b568bc_0.geojson"
 
+BERDOlabels <- setNames(c("EnergyStar_Score", "Site_Energy_Use", "GHG_Emissions"), c("Energy Score","Energy Usage","GHG Emissions"))
+
 titles <- lapply(datasets, function(x){
   return (x$title)
 })

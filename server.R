@@ -447,38 +447,130 @@ shinyServer(function(input, output, session) {
   })
   #Bike Map SERVER END
   
-  #Drive Map SERVER START
-  output$drivemap <- renderLeaflet({
-    emergencyparking <- geojsonio::geojson_read("http://bostonopendata-boston.opendata.arcgis.com/datasets/53ebc23fcc654111b642f70e61c63852_0.geojson",what = "sp")
+  #BERDO SERVER START
+  output$BERDOmap <- renderLeaflet({
+    BERDO <- geojsonio::geojson_read("http://bostonopendata-boston.opendata.arcgis.com/datasets/82595a1b793a49c2bce7d61b751bdca5_2.geojson", what = "sp")
     
-    parking_popuptext <- paste(sep="<br/>",
-                               emergencyparking$Name,
-                               emergencyparking$Address,
-                               emergencyparking$Fee)
+    binScore <- c(seq(0,100,20)) # bind bind it with INF
+    palScore <- colorBin("YlGn", domain = BERDO$EnergyStar_Score, bins = binScore)
+    colorScore <- c("gray",brewer.pal(6,"YlGn"))
+    textScore <- c("NA","0 - 20","20 - 40","40 - 60", "60 - 80", "80 - 100",">100")
     
-    chargingstations <-geojsonio::geojson_read("http://bostonopendata-boston.opendata.arcgis.com/datasets/465e00f9632145a1ad645a27d27069b4_2.geojson",what="sp")
+    Energyuse_UpperBound<-quantile(BERDO$Site_Energy_Use,probs=.97,na.rm=TRUE)
+    binUsage <- c(seq(0,signif(Energyuse_UpperBound,1),signif(Energyuse_UpperBound,1)/5), max(BERDO$Site_Energy_Use,na.rm=TRUE))
+    palUsage <- colorBin("OrRd", domain = BERDO$Site_Energy_Use, bins = binUsage)
+    colorUsage <-c("gray",brewer.pal(6,"OrRd"))
+    textUsage <- c("NA","0 - 20,000,000","20,000,000 - 40,000,000","40,000,000 - 60,000,000","60,000,000 - 80,000,000","80,000,000 - 100,000,000",">100,000,000")
     
-    charging_popuptext <-paste(sep="<br/>",
-                               chargingstations$Station_Name,
-                               chargingstations$Street_Address)
+    GHG_Emissions_UpperBound <-quantile(BERDO$GHG_Emissions,probs=.975,na.rm=TRUE)
+    binEmissions <- c(seq(0,signif(GHG_Emissions_UpperBound,1),signif(GHG_Emissions_UpperBound,1)/5), max(BERDO$GHG_Emissions,na.rm=TRUE))
+    palEmissions <- colorBin("OrRd", domain = BERDO$GHG_Emissions,bins = binEmissions)
+    colorEmissions <-c("gray",brewer.pal(6,"OrRd"))
+    textEmissions<-c("NA","0 - 2,000","2,000 - 4,000","4,000 - 6,000","6,000 - 8,000", "8,000 - 10,000", ">10,000")
+    
+    # BERDO utility functions
+    getPalette <- function(dataName){
+      if(dataName=="Energy Score"){
+        palScore(BERDO[[BERDOlabels[input$BERDODataLayer]]])
+      } else if(dataName=="Energy Usage"){
+        palUsage(BERDO[[BERDOlabels[input$BERDODataLayer]]])
+      } else if(dataName=="GHG Emissions"){
+        palEmissions(BERDO[[BERDOlabels[input$BERDODataLayer]]])
+      }
+    }
+    getPaletteFunction <-function(dataName){
+      if (dataName=="Energy Score"){
+        palScore
+      } else if(dataName=="Energy Usage"){
+        palUsage
+      }
+      else if(dataName=="GHG Emissions"){
+        palEmissions
+      }
+    }
+    getColors <-function(dataName){
+      if (dataName=="Energy Score"){
+        colorScore
+      } else if(dataName=="Energy Usage"){
+        colorUsage
+      }
+      else if(dataName=="GHG Emissions"){
+        colorEmissions
+      }
+    }
+    
+    getText <-function(dataName){
+      if (dataName=="Energy Score"){
+        textScore
+      } else if(dataName=="Energy Usage"){
+        textUsage
+      }
+      else if(dataName=="GHG Emissions"){
+        textEmissions
+      }
+    }
+    getTitle <- function(dataName){
+      if(dataName=="Energy Score"){
+        "Energy Star Score"
+      } else if(dataName=="Energy Usage"){
+        "Energy Usage (kBTU/sq.ft.)"
+      } else if(dataName=="GHG Emissions"){
+        HTML("Greenhouse Gas Emissions<br>(Metric Tons of CO2)")
+      }
+    }
+    getUnits <- function(dataName){
+      if(dataName=="Energy Usage"){
+        "kBTU/sq.ft."
+      } else if(dataName=="GHG Emissions"){
+        "Metrics Tons of CO2"
+      }else{
+        ""
+      }
+    }
+    
     
     shinyjs::hide(id="loading3")
     
     leaflet()%>%
-      addProviderTiles(providers$Esri.WorldGrayCanvas, options = providerTileOptions(nowrap = TRUE)) %>%
-      setView(lng =-71.057083, lat = 42.32, zoom = 11) %>%
-      addMarkers(data=emergencyparking,popup=parking_popuptext,group="Emergency Parking",clusterId = 'parking',clusterOptions = markerClusterOptions())%>%
-      addMarkers(data=chargingstations,popup=parking_popuptext,group="Charging Stations",clusterId = 'charging stations',clusterOptions = markerClusterOptions())%>%
+      addProviderTiles(providers$Esri.WorldGrayCanvas) %>%
+      setView(lng =-71.057083, lat = 42.3601, zoom = 15) %>%
+      addPolygons(
+        data=BERDO,
+        group="Energy Rating",
+        weight=1,
+        opacity=10,
+        color="black",
+        fillColor=getPalette(input$BERDODataLayer),
+        fillOpacity=5,
+        popup=paste(BERDO$Property_Name,
+                    "<br/>",
+                    "Type:",
+                    BERDO$Property_Uses,
+                    "<br/>",
+                    input$BERDODataLayer,
+                    ":"
+                    ,
+                    prettyNum(BERDO[[BERDOlabels[input$BERDODataLayer]]], big.mark=","), 
+                    lapply(BERDO[[BERDOlabels[input$BERDODataLayer]]], function(i){
+                      if(is.na(i)){
+                        ""
+                      }else{
+                        getUnits(input$BERDODataLayer)
+                      }
+                    })
+        )
+      )%>%
       addEasyButton(easyButton(
         icon="fa-crosshairs", title="Locate Me",
         onClick=JS("function(btn, map){ map.locate({setView: true}); }")))%>%
-      addLayersControl(
-        baseGroups=c("Emergency Parking","Charging Stations"),
-        options=layersControlOptions(collapsed=FALSE)
-      ) %>%
-      addCityBound()
+      addLegend(title=getTitle(input$BERDODataLayer),
+                position=c("bottomright"),
+                colors=getColors(input$BERDODataLayer),
+                labels=getText(input$BERDODataLayer)
+      )
+    
   })
-  #Drive Map SERVER END
+  #BERDO SERVER END
   
 }
 )
