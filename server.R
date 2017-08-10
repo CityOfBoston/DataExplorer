@@ -74,7 +74,7 @@ shinyServer(function(input, output, session) {
   # input data for choices about datasets
   df <- eventReactive(input$update, {
     saveFeatures()
-    updateQueryString(createQueryString())
+    # updateQueryString(createQueryString())
     features$urltext <- paste0(baseURL, createQueryString())
     features$df
   })
