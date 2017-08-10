@@ -306,6 +306,8 @@ shinyServer(function(input, output, session) {
     
     lightFile <- "./data/light.rds"
     lightData <- NULL
+    neighborhoodFile <- "./data/neighborhoods.rds"
+    neighborhoodJson <- NULL
     
     
     if(file.exists(lightFile)){
@@ -314,8 +316,12 @@ shinyServer(function(input, output, session) {
       lightData <- read.csv(lightLink)
       saveRDS(lightData, lightFile)
     }
-    
-    neighborhoodJson <- geojson_read(neighborhoodLink, what="sp")
+    if(file.exists(neighborhoodFile)){
+      neighborhoodJson <- readRDS(neighborhoodFile)
+    }else{
+      neighborhoodJson <- geojsonio::geojson_read(neighborhoodLink, what = "sp")
+      saveRDS(neighborhoodJson, neighborhoodFile)
+    }
     
     # make sure there are no N/A entries in data
     complete <- lightData[complete.cases(lightData),]
@@ -358,18 +364,53 @@ shinyServer(function(input, output, session) {
   output$SCHOOLmap <- renderLeaflet({
     blankicon <- makeIcon(iconUrl = ("https://raw.githubusercontent.com/agnev1021/GEHC-/master/Icons/blank.png?token=AcE3av8vBtM0JDio5ziah-yetTkn3yrWks5ZfSpmwA%3D%3D"), iconWidth = 1, iconHeight = 1)
     collegeicon <- makeIcon(iconUrl = ("https://cdn2.iconfinder.com/data/icons/location-map-simplicity/512/university_school-512.png"), iconWidth = 50, iconHeight = 55)
-    publicschools <- geojsonio::geojson_read("http://bostonopendata-boston.opendata.arcgis.com/datasets/1d9509a8b2fd485d9ad471ba2fdb1f90_0.geojson", what = "sp")
-    nonpublicschools <- geojsonio::geojson_read("http://bostonopendata-boston.opendata.arcgis.com/datasets/0046426a3e4340a6b025ad52b41be70a_1.geojson", what="sp")
-    colleges <- geojsonio::geojson_read("http://bostonopendata-boston.opendata.arcgis.com/datasets/cbf14bb032ef4bd38e20429f71acb61a_2.geojson",what="sp")
-    neighborhoodLink <- "http://bostonopendata-boston.opendata.arcgis.com/datasets/3525b0ee6e6b427f9aab5d0a1d0a1a28_0.geojson"
-    neighborhoodJson <- geojsonio::geojson_read(neighborhoodLink,what = "sp")
+    
+    publicSchoolsLink <- "http://bostonopendata-boston.opendata.arcgis.com/datasets/1d9509a8b2fd485d9ad471ba2fdb1f90_0.geojson"
+    nonPublicSchoolsLink <- "http://bostonopendata-boston.opendata.arcgis.com/datasets/0046426a3e4340a6b025ad52b41be70a_1.geojson"
+    collegesLink <- "http://bostonopendata-boston.opendata.arcgis.com/datasets/cbf14bb032ef4bd38e20429f71acb61a_2.geojson"
+    neighborhoodsLink <- "http://bostonopendata-boston.opendata.arcgis.com/datasets/3525b0ee6e6b427f9aab5d0a1d0a1a28_0.geojson"
+    
+    publicSchoolsFile <- "./data/publicSchools.rds"
+    nonPublicSchoolsFile <- "./data/nonPublicSchools.rds"
+    collegesFile <- "./data/colleges.rds"
+    neighborhoodsFile <- "./data/neighborhoods.rds"
+    
+    publicschools <- NULL
+    nonpublicschools <- NULL
+    colleges <- NULL
+    neighborhoods <- NULL
+    
+    if(file.exists(publicSchoolsFile)){
+      publicschools <- readRDS(publicSchoolsFile)
+    }else{
+      publicschools <- geojsonio::geojson_read(publicSchoolsLink, what = "sp")
+      saveRDS(publicschools, publicSchoolsFile)
+    }
+    if(file.exists(nonPublicSchoolsFile)){
+      nonpublicschools <- readRDS(nonPublicSchoolsFile)
+    }else{
+      nonpublicschools <- geojsonio::geojson_read(nonPublicSchoolsLink, what = "sp")
+      saveRDS(nonpublicschools, nonPublicSchoolsFile)
+    }
+    if(file.exists(collegesFile)){
+      colleges <- readRDS(collegesFile)
+    }else{
+      colleges <- geojsonio::geojson_read(collegesLink, what = "sp")
+      saveRDS(colleges, collegesFile)
+    }
+    if(file.exists(neighborhoodsFile)){
+      neighborhoods <- readRDS(neighborhoodsFile)
+    }else{
+      neighborhoods <- geojsonio::geojson_read(neighborhoodsLink, what = "sp")
+      saveRDS(neighborhoods, neighborhoodsFile)
+    }
     
     shinyjs::hide(id="loading2")
     
     leaflet()%>%
       addProviderTiles(providers$Esri.WorldGrayCanvas) %>%
       setView(lng =-71.057083, lat = 42.32, zoom = 11) %>%
-      addPolygons(data = neighborhoodJson, weight = 2, color = "blue",
+      addPolygons(data = neighborhoods, weight = 2, color = "blue",
                   fill = TRUE, popup=~paste("<b>", Name),group = 'Neighborhoods')%>%
       addMarkers(data=publicschools,
                  clusterOptions=markerClusterOptions(),
@@ -405,9 +446,24 @@ shinyServer(function(input, output, session) {
   
   #Bike Map SERVER START
   output$bikemap <- renderLeaflet({
-    bikelanes <- geojsonio::geojson_read("http://bostonopendata-boston.opendata.arcgis.com/datasets/d02c9d2003af455fbc37f550cc53d3a4_0.geojson", what = "sp")
+    bikelanesFile <- "./data/bikelanes.rds"
+    hubwayStationFile <- "./data/hubwayStations.rds"
     
-    hubwaystations <- read.csv("https://s3.amazonaws.com/hubway-data/Hubway_Stations_2011_2016.csv")
+    bikelanesLink <- "http://bostonopendata-boston.opendata.arcgis.com/datasets/d02c9d2003af455fbc37f550cc53d3a4_0.geojson"
+    hubwayStationLink <- "https://s3.amazonaws.com/hubway-data/Hubway_Stations_2011_2016.csv"
+      
+    if(file.exists(bikelanesFile)){
+      bikelanes <- readRDS(bikelanesFile)
+    }else{
+      bikelanes <- geojsonio::geojson_read(bikelanesLink, what = "sp")
+      saveRDS(bikelanes, bikelanesFile)
+    }
+    if(file.exists(hubwayStationFile)){
+      hubwaystations <- readRDS(hubwayStationFile)
+    }else{
+      hubwaystations <- read.csv(hubwayStationLink)
+      saveRDS(hubwaystations, hubwayStationFile)
+    }
     
     hubwaypoints <-cbind(as.numeric(hubwaystations$Longitude),as.numeric(hubwaystations$Latitude))
     
@@ -515,7 +571,7 @@ shinyServer(function(input, output, session) {
     }
     getUnits <- function(dataName){
       if(dataName=="Energy Usage"){
-        "kBTU/sq.ft."
+        "kBTU"
       } else if(dataName=="GHG Emissions"){
         "Metrics Tons of CO2"
       }else{

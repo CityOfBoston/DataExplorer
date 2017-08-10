@@ -3,9 +3,9 @@ title: dataExplorer
 account: rupayan
 server: shinyapps.io
 appId: 199168
-bundleId: 931538
+bundleId: 934597
 url: https://rupayan.shinyapps.io/dataExplorer/
-when: 1502135055.17708
+when: 1502301549.73627
 asMultiple: FALSE
 asStatic: FALSE
 ignoredFiles: BERDOShowcase.R|BERDOShowcase2.R|BERDOShowcaseFinished.R|BikeMap.R|Drive Showcase.R|ExampleBerdoErrors.R|Schools Showcase.R
