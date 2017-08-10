@@ -16,7 +16,7 @@ The application has the basic Shiny application structure: `ui.r` contains the f
 
 ## Deployment
 
-Currently, this application is live on a free [shinyapps website](https://rupayan.shinyapps.io/dataExplorer/). Luckily, RStudio makes deploying Shiny applications very simple. Just a click of the blue deploy button in the application lets a user deploy any application to their linked account. Of course, the account that the current application is on will probably soon be deprecated.
+Currently, this application is live on a free [shinyapps website](https://samanthayoung.shinyapps.io/DataExplorer/). Luckily, RStudio makes deploying Shiny applications very simple. Just a click of the blue deploy button in the application lets a user deploy any application to their linked account. Of course, the account that the current application is on will probably soon be deprecated.
 
 **IMPORTANT: When deploying the application, make sure to change the _baseURL_ variable in global.R to whatever the new base URL will be wherever the application is located. This URL is used for social sharing buttons.**
 
