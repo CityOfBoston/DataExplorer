@@ -6,7 +6,7 @@ library(shinyBS)
 library(DT)
 library(shinyjs)
 
-baseURL <- "https://rupayan.shinyapps.io/dataExplorer/"
+baseURL <- "https://samanthayoung.shinyapps.io/DataExplorer/"
 # baseURL <- "http://127.0.0.1:4088/"
 
 # the geospatial datasets from analyze boston (maxes at 100 data sets for now, can remove if desired)
