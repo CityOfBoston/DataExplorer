@@ -1,0 +1,111 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: This pipeline will monitor a shiny app repository and kick off a shinyproxy build when changes are made
+Parameters:
+  GithubOauthToken:
+    Type: String
+    Description: see http://docs.aws.amazon.com/codepipeline/latest/userguide/integrations-action-type.html for instructions
+  GithubRepoOwner:
+    Type: String
+    Description: The Github owner of the repository
+  GithubRepoName:
+    Type: String
+    Description: The GitHub repository where the Shiny App to be built is located
+  GithubRepoBranch:
+    Type: String
+    Default: master
+    Description: The Git branch to be used
+  EcrRepository:
+    Type: String
+    Default: 811289587868.dkr.ecr.us-west-2.amazonaws.com
+    Description: The respository that you would like to push the image to
+  ImageName:
+    Type: String
+    Description: The name of the image
+  Region:
+      Type: String
+      Description: The region that the repository is located in
+      Default: us-west-2
+  BaseURL:
+      Type: String 
+      Description: The url used in sharing features in the Analyze Boston Shiny App
+      Default: https://analytics.boston.gov/data_explorer
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Source Code Repository
+        Parameters:
+          - GithubRepoOwner
+          - GithubRepoName
+          - GithubRepoBranch
+          - GithubOauthToken
+Resources:
+  ArtifactStoreBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      VersioningConfiguration:
+        Status: Enabled
+      AccessControl: BucketOwnerFullControl
+  Pipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      RoleArn: arn:aws:iam::811289587868:role/codepipeline-role
+      ArtifactStore:
+       Location:
+            Ref:
+              ArtifactStoreBucket
+       Type: S3
+      Stages:
+          - Name: Source
+            Actions:
+              - InputArtifacts: []
+                Name: ShinyApp
+                ActionTypeId:
+                  Category: Source
+                  Owner: ThirdParty
+                  Version: 1
+                  Provider: GitHub
+                OutputArtifacts:
+                  - Name: ShinyApp
+                Configuration:
+                  Owner: !Ref GithubRepoOwner
+                  Repo: !Ref GithubRepoName
+                  Branch: !Ref GithubRepoBranch
+                  OAuthToken: !Ref GithubOauthToken
+                RunOrder: 1
+          - Name: BuildShinyDockerImage
+            Actions:
+            - Name: BuildShinyDockerAction
+              ActionTypeId:
+                  Category: Build
+                  Owner: AWS
+                  Version: 1
+                  Provider: CodeBuild
+              InputArtifacts:
+                   - Name: ShinyApp
+              Configuration:
+                   ProjectName: !Ref BuildShinyDockerImage
+              RunOrder: 2
+
+  BuildShinyDockerImage:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/docker:1.12.1
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: ImageName
+            Value: !Sub ${ImageName}
+          - Name: EcrRepository
+            Value: !Sub ${EcrRepository}
+          - Name: Region
+            Value: !Sub ${Region}
+          - Name: BASE_URL
+            Value: !Sub ${BaseURL}
+      Name: !Sub ${AWS::StackName}-BuildDockerImage
+      ServiceRole: arn:aws:iam::811289587868:role/shinyapp-deploy-role
+      Source:
+        Type: CODEPIPELINE 

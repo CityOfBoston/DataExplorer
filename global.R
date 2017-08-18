@@ -7,8 +7,11 @@ library(DT)
 library(shinyjs)
 
 #change based on wherever this application is housed
-baseURL <- "https://samanthayoung.shinyapps.io/DataExplorer/" 
+#baseURL <- "https://samanthayoung.shinyapps.io/DataExplorer/" 
 # baseURL <- "http://127.0.0.1:4088/"
+baseURL <- ifelse(no = paste0(Sys.getenv('BASE_URL'),':3838/'),
+                  test = Sys.getenv('BASE_URL') =='',
+                  yes = "http://localhost:3838/")
 
 # the geospatial datasets from analyze boston (maxes at 100 data sets for now, can remove if desired)
 datasets <- fromJSON(readLines("https://data.boston.gov/api/3/action/package_search?q=geojson&rows=100"))$result$results
