@@ -11,7 +11,7 @@ if [ $repository_exists == False ]; then
  echo "$EcrRepository does not exist so we are going to create it"
  aws ecr create-repository --repository-name $ImageName
  echo "Going to build the docker image now"
- docker build -t $EcrRepository/$ImageName:$Tag .
+ docker build --build-arg BASE_URL=$BASE_URL -t $EcrRepository/$ImageName:$Tag .
  echo "pushing the built image to the ecr repository"
  docker push $EcrRepository/$ImageName:$Tag
  echo "exiting script since there is nothing else to do"
@@ -24,11 +24,11 @@ if [ ! -z "$ImageName" ] && [ ! -z "$EcrRepository" ]; then
     if [ ! -z "$Tag" ]; then
         echo "building image as $EcrRepository/$ImageName:$Tag"
         docker pull $EcrRepository/$ImageName:$Tag
-	docker build -t $EcrRepository/$ImageName:$Tag .
+	docker build --build-arg BASE_URL=$BASE_URL -t $EcrRepository/$ImageName:$Tag .
     else
         echo "git tag resulted in an empty string so we are just going to label this image as latest"
         docker pull $EcrRepository/$ImageName:latest
-	docker build -t $EcrRepository/$ImageName:latest .
+	docker build --build-arg BASE_URL=$BASE_URL -t $EcrRepository/$ImageName:latest .
     fi
 else
     echo "ImageName and EcrRepository must be set as environment variables to build the docker image"
