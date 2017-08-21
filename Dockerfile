@@ -15,7 +15,11 @@ libgdal-dev \
 libproj-dev \
 libgdal1i \
 libcurl4-openssl-dev \
-libv8-3.14-dev
+libv8-dev \
+libgdal1-dev \
+libprotobuf-dev \
+protobuf-compiler
+#libv8-3.14-dev
 
 ARG BASE_URL
 ENV BASE_URL=$BASE_URL
@@ -26,6 +30,8 @@ ENV BASE_URL=$BASE_URL
 RUN R -e "install.packages(c('shiny', 'rmarkdown'), repos='https://cloud.r-project.org/')"
 
 # basic app dependencies 
+RUN R -e "install.packages('rgdal',type='source')"
+RUN R -e "install.packages('rgeos',type='source')"
 RUN R -e "install.packages(c('colourpicker','spatialEco','leaflet','rjson','geojsonio','shinyBS','DT','shinyjs'))"
 # copy app to the image 
 RUN mkdir /root/data_explorer
