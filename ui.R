@@ -10,7 +10,8 @@ navbarPage("Analyze Boston Data Explorer", id="nav", collapsible=TRUE,
         # Include our custom CSS
         includeCSS("styles.css"),
         includeScript("gomap.js"),
-        includeScript("widgets.js")
+        includeScript("widgets.js"),
+        includeScript("google-analytics.js")
       ),
 
       leafletOutput("map", width="100%", height="100%"),
