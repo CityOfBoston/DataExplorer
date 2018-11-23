@@ -14,7 +14,7 @@ baseURL <- ifelse(no = paste0(Sys.getenv('BASE_URL'),':3838/'),
                   yes = "http://localhost:3838/")
 
 # the geospatial datasets from analyze boston (maxes at 100 data sets for now, can remove if desired)
-datasets <- fromJSON(readLines("https://data.boston.gov/api/3/action/package_search?q=geojson&rows=100"))$result$results
+datasets <- fromJSON(readLines("https://data.boston.gov/api/3/action/package_search?q=geojson&rows=50"))$result$results
 # boston boundary
 bostonLink<-"http://bostonopendata-boston.opendata.arcgis.com/datasets/142500a77e2a4dbeb94a86f7e0b568bc_0.geojson"
 
